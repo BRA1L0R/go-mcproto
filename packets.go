@@ -1,7 +1,9 @@
 package mcprot
 
 import (
-	"errors"
+	"bytes"
+	"compress/zlib"
+	"io"
 
 	"github.com/BRA1L0R/go-mcprot/packets"
 	"github.com/BRA1L0R/go-mcprot/varint"
@@ -45,31 +47,53 @@ func (mc *McProt) ReceivePacket() (*packets.StandardPacket, error) {
 
 	if dataLength != 0 {
 		// drain the remaining packet
-		// drain := make([]byte, packetLength-dLenLen)
-		// mc.Connection.Read(drain)
-		mc.drain(packetLength - dLenLen)
-		return nil, errors.New("compressed packet received, unable to process such packet at the moment")
+		compressedData := make([]byte, packetLength-dLenLen)
+		mc.connection.Read(compressedData)
+
+		compressedBuffer := bytes.NewBuffer(compressedData)
+
+		reader, err := zlib.NewReader(compressedBuffer)
+		if err != nil {
+			return nil, err
+		}
+
+		uncompressedBuffer := new(bytes.Buffer)
+		io.Copy(uncompressedBuffer, reader)
+
+		packetId, pIdLen, err := varint.DecodeReaderVarInt(uncompressedBuffer)
+		if err != nil {
+			mc.drain(dataLength - pIdLen)
+			return nil, err
+		}
+
+		newPacket := new(packets.StandardPacket)
+		newPacket.Length = packetLength
+		newPacket.DataLength = dataLength
+		newPacket.PacketID = packetId
+		newPacket.Data.ReadFrom(uncompressedBuffer)
+
+		return newPacket, nil
+	} else {
+		packetId, pIdLen, err := varint.DecodeReaderVarInt(mc.connection)
+		if err != nil {
+			mc.drain(packetLength - (dLenLen + pIdLen))
+			return nil, err
+		}
+
+		newPacket := new(packets.StandardPacket)
+		newPacket.Length = packetLength
+		newPacket.DataLength = dataLength
+		newPacket.PacketID = packetId
+
+		remainingDataLen := packetLength - dLenLen - pIdLen
+
+		data := make([]byte, remainingDataLen)
+		mc.connection.Read(data)
+
+		newPacket.Data.Write(data)
+
+		return newPacket, nil
 	}
-
-	packetId, pIdLen, err := varint.DecodeReaderVarInt(mc.connection)
-	if err != nil {
-		mc.drain(packetLength - (dLenLen + pIdLen))
-		return nil, err
-	}
-
-	newPacket := new(packets.StandardPacket)
-	newPacket.Length = packetLength
-	newPacket.DataLength = dataLength
-	newPacket.PacketID = packetId
-
-	remainingDataLen := packetLength - dLenLen - pIdLen
-
-	data := make([]byte, remainingDataLen)
-	mc.connection.Read(data)
-
-	newPacket.Data.Write(data)
-
-	return newPacket, nil
 }
 
 func (mc *McProt) drain(size int) {

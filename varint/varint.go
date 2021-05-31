@@ -34,6 +34,15 @@ func EncodeVarInt(inputValue int) ([]byte, int) {
 	return buffer, written
 }
 
+// DecodeReaderVarInt takes an io.Reader as a parameter and returns in order:
+//
+// - the result varint
+//
+// - the number of bytes read
+//
+// - an eventual error
+//
+// NOTE: It returns the number of bytes read even in occurance of an error
 func DecodeReaderVarInt(reader io.Reader) (int, int, error) {
 	numRead := 0
 	result := 0

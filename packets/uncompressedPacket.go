@@ -3,6 +3,7 @@ package packets
 import (
 	"bytes"
 
+	"github.com/BRA1L0R/go-mcprot/packets/serialization"
 	"github.com/BRA1L0R/go-mcprot/varint"
 )
 
@@ -30,9 +31,9 @@ func (p *UncompressedPacket) Serialize() []byte {
 }
 
 func (p *UncompressedPacket) SerializeData(inter interface{}) error {
-	return encodeFields(inter, &p.Data)
+	return serialization.SerializeFields(inter, &p.Data)
 }
 
 func (p *UncompressedPacket) DeserializeData(inter interface{}) error {
-	return decodeFields(inter, &p.Data)
+	return serialization.DeserializeFields(inter, &p.Data)
 }

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 
+	"github.com/BRA1L0R/go-mcprot/packets/serialization"
 	"github.com/BRA1L0R/go-mcprot/varint"
 )
 
@@ -18,11 +19,11 @@ type StandardPacket struct {
 }
 
 func (p *StandardPacket) SerializeData(inter interface{}) error {
-	return encodeFields(inter, &p.Data)
+	return serialization.SerializeFields(inter, &p.Data)
 }
 
 func (p *StandardPacket) DeserializeData(inter interface{}) error {
-	return decodeFields(inter, &p.Data)
+	return serialization.DeserializeFields(inter, &p.Data)
 }
 
 func (p *StandardPacket) Serialize(compressionTreshold int) ([]byte, error) {
