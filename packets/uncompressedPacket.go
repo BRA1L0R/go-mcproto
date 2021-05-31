@@ -13,6 +13,8 @@ type UncompressedPacket struct {
 	Data     bytes.Buffer
 }
 
+// Serialize() on UncompressedPackets never returns an error
+// but it's in the return params to be compliant to the PacketOp interface
 func (p *UncompressedPacket) Serialize() []byte {
 	encodedPacketId, pIdLength := varint.EncodeVarInt(p.PacketID)
 

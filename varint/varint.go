@@ -50,7 +50,7 @@ func DecodeReaderVarInt(reader io.Reader) (int, int, error) {
 		numRead++
 		if numRead > 5 {
 			// panic("VarInt is too big >:/")
-			return 0, 0, ErrVarIntTooBig
+			return 0, numRead, ErrVarIntTooBig
 		}
 
 		if (readByte & 0b10000000) == 0 {

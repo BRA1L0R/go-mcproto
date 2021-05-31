@@ -3,6 +3,7 @@ package packets
 import (
 	"bytes"
 	"encoding/binary"
+	"errors"
 	"reflect"
 	"strconv"
 
@@ -11,8 +12,12 @@ import (
 
 func encodeFields(inter interface{}, databuf *bytes.Buffer) error {
 	t := reflect.ValueOf(inter)
-	for i := 0; i < t.NumField(); i++ {
 
+	if t.Kind() != reflect.Struct {
+		return errors.New("inter should be an interface not a pointer to one")
+	}
+
+	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
 		typeField := t.Type().Field(i)
 
@@ -47,7 +52,14 @@ func encodeFields(inter interface{}, databuf *bytes.Buffer) error {
 }
 
 func decodeFields(interPtr interface{}, databuf *bytes.Buffer) error {
-	t := reflect.ValueOf(interPtr).Elem()
+	v := reflect.ValueOf(interPtr)
+
+	if v.Kind() != reflect.Ptr {
+		return errors.New("interPtr should be a pointer to an interface")
+	}
+
+	t := v.Elem()
+
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
 		typeField := t.Type().Field(i)

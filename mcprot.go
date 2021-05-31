@@ -5,11 +5,16 @@ import (
 )
 
 type McProt struct {
-	Host string
-	Port uint16
-	Name string
+	Host            string
+	Port            uint16
+	Name            string
+	ProtocolVersion int
 
-	CompressionTreshold int
+	compressionTreshold int
 
-	Connection net.Conn
+	connection net.Conn
+}
+
+func (mc *McProt) GetCompressionTreshold() int {
+	return mc.compressionTreshold
 }

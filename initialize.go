@@ -9,7 +9,7 @@ import (
 
 func (mc *McProt) Initialize() error {
 	conn, err := net.Dial("tcp", fmt.Sprintf("%s:%v", mc.Host, mc.Port))
-	mc.Connection = conn
+	mc.connection = conn
 	if err != nil {
 		return err
 	}
@@ -23,17 +23,13 @@ func (mc *McProt) Initialize() error {
 			PacketID: 0x00,
 		},
 
-		ProtocolVersion: 754,
+		ProtocolVersion: mc.ProtocolVersion,
 		ServerAddress:   mc.Host,
 		ServerPort:      mc.Port,
 		NextState:       2,
 	}
 
-	if err := hp.SerializeData(hp); err != nil {
-		return err
-	}
-
-	conn.Write(hp.Serialize())
+	mc.WriteUncompressedPacket(hp)
 
 	loginPacket := packets.LoginStartPacket{
 		UncompressedPacket: &packets.UncompressedPacket{
@@ -43,11 +39,7 @@ func (mc *McProt) Initialize() error {
 		Name: mc.Name,
 	}
 
-	if err := loginPacket.SerializeData(loginPacket); err != nil {
-		return err
-	}
-
-	conn.Write(loginPacket.Serialize())
+	mc.WriteUncompressedPacket(loginPacket)
 
 	p, err := mc.ReceiveUncompressedPacket()
 	if err != nil {
@@ -60,7 +52,7 @@ func (mc *McProt) Initialize() error {
 	}
 
 	setCompPacket.DeserializeData(&setCompPacket)
-	mc.CompressionTreshold = setCompPacket.Treshold
+	mc.compressionTreshold = setCompPacket.Treshold
 
 	pack, err := mc.ReceivePacket()
 	if err != nil {
@@ -73,7 +65,5 @@ func (mc *McProt) Initialize() error {
 	}
 
 	loginSuccessPacket.DeserializeData(&loginSuccessPacket)
-
-	fmt.Println("Logged in with username: " + loginSuccessPacket.Username)
 	return nil
 }

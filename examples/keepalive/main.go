@@ -17,8 +17,16 @@ var (
 func main() {
 	flag.Parse()
 
-	client := mcprot.McProt{Host: *host, Port: uint16(*port), Name: "GolangTest"}
+	client := mcprot.McProt{
+		Host:            *host,
+		Port:            uint16(*port),
+		ProtocolVersion: 754, // 1.16.5
+		Name:            "GolangTest",
+	}
+
 	client.Initialize()
+
+	fmt.Println("Joined the server as:", client.Name)
 
 	for {
 		packet, err := client.ReceivePacket()
@@ -42,17 +50,7 @@ func main() {
 				KeepAliveID:    receivedKeepalive.KeepAliveID,
 			}
 
-			err = serverBoundKeepalive.SerializeData(serverBoundKeepalive)
-			if err != nil {
-				panic(err)
-			}
-
-			keepAlive, err := serverBoundKeepalive.Serialize(client.CompressionTreshold)
-			if err != nil {
-				panic(err)
-			}
-
-			client.Connection.Write(keepAlive)
+			client.WritePacket(serverBoundKeepalive)
 			fmt.Println("KeepAlive sent")
 		}
 	}
