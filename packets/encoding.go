@@ -83,14 +83,10 @@ func decodeFields(interPtr interface{}, databuf *bytes.Buffer) error {
 
 			field.SetString(string(dataString))
 		case "inherit":
-			value := new(int64)
-			err := binary.Read(databuf, binary.BigEndian, value)
-
+			err := binary.Read(databuf, binary.BigEndian, field.Addr().Interface())
 			if err != nil {
 				return err
 			}
-
-			field.SetInt(*value)
 		case "ignore":
 			ignoreLength, _ := strconv.Atoi(typeField.Tag.Get("len"))
 			ignoreBuf := make([]byte, ignoreLength)
