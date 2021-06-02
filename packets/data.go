@@ -2,6 +2,8 @@ package packets
 
 import (
 	"bytes"
+	"errors"
+	"reflect"
 
 	"github.com/BRA1L0R/go-mcprot/packets/serialization"
 )
@@ -14,11 +16,33 @@ type standardPacket struct {
 }
 
 func (p *standardPacket) SerializeData(inter interface{}) error {
-	return serialization.SerializeFields(inter, p.Data)
+	val, err := getReflectValue(inter)
+	if err != nil {
+		return err
+	}
+
+	return serialization.SerializeFields(val, p.Data)
 }
 
 func (p *standardPacket) DeserializeData(inter interface{}) error {
-	return serialization.DeserializeFields(inter, p.Data)
+	val, err := getReflectValue(inter)
+	if err != nil {
+		return err
+	}
+
+	return serialization.DeserializeFields(val, p.Data)
+}
+
+func getReflectValue(inter interface{}) (val reflect.Value, err error) {
+	v := reflect.ValueOf(inter)
+
+	if v.Kind() != reflect.Ptr {
+		err = errors.New("inter should be a pointer to an interface")
+		return
+	}
+
+	val = v.Elem()
+	return
 }
 
 func (p *standardPacket) InitializePacket() {

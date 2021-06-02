@@ -3,22 +3,13 @@ package serialization
 import (
 	"bytes"
 	"encoding/binary"
-	"errors"
 	"reflect"
 
 	"github.com/BRA1L0R/go-mcprot/varint"
 	"github.com/Tnze/go-mc/nbt"
 )
 
-func DeserializeFields(interPtr interface{}, databuf *bytes.Buffer) error {
-	v := reflect.ValueOf(interPtr)
-
-	if v.Kind() != reflect.Ptr {
-		return errors.New("interPtr should be a pointer to an interface")
-	}
-
-	t := v.Elem()
-
+func DeserializeFields(t reflect.Value, databuf *bytes.Buffer) error {
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
 		typeField := t.Type().Field(i)

@@ -46,7 +46,7 @@ func TestVarInt(t *testing.T) {
 		}
 	}
 
-	for i := int32(-10); i < 10; i++ {
+	for i := int32(-1000); i < 1000; i++ {
 		test, bytesWritten := varint.EncodeVarInt(i)
 
 		buf := bytes.NewBuffer(test)

@@ -3,22 +3,13 @@ package serialization
 import (
 	"bytes"
 	"encoding/binary"
-	"errors"
 	"reflect"
 
 	"github.com/BRA1L0R/go-mcprot/varint"
 	"github.com/Tnze/go-mc/nbt"
 )
 
-func SerializeFields(inter interface{}, databuf *bytes.Buffer) error {
-	v := reflect.ValueOf(inter)
-
-	if v.Kind() != reflect.Ptr {
-		return errors.New("inter should be a pointer to an interface")
-	}
-
-	t := v.Elem()
-
+func SerializeFields(t reflect.Value, databuf *bytes.Buffer) error {
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
 		typeField := t.Type().Field(i)
@@ -52,9 +43,6 @@ func SerializeFields(inter interface{}, databuf *bytes.Buffer) error {
 			ignoreBuf := make([]byte, ignoreLength)
 
 			databuf.Write(ignoreBuf)
-		case "byte":
-			data, _ := field.Interface().(byte)
-			databuf.WriteByte(data)
 		case "nbt":
 			err := nbt.Marshal(databuf, field.Interface())
 			if err != nil {
@@ -62,7 +50,7 @@ func SerializeFields(inter interface{}, databuf *bytes.Buffer) error {
 			}
 		case "varintarr":
 			length, _ := getLength(t, typeField)
-			fieldArr := field.Addr().Interface().([]int32)
+			fieldArr := field.Interface().([]int32)
 
 			fieldArrSize := len(fieldArr)
 
