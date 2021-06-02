@@ -68,7 +68,6 @@ func (mc *McProt) ReceivePacket() (*packets.CompressedPacket, error) {
 		}
 
 		reader, err := zlib.NewReader(remainingDataBuffer)
-		defer reader.Close()
 		if err != nil {
 			return nil, err
 		}
@@ -88,7 +87,7 @@ func (mc *McProt) ReceivePacket() (*packets.CompressedPacket, error) {
 
 		newPacket.PacketID = packetId
 
-		return newPacket, err
+		return newPacket, reader.Close()
 	} else {
 		packetId, _, err := varint.DecodeReaderVarInt(remainingDataBuffer)
 		if err != nil {
