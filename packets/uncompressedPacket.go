@@ -3,37 +3,40 @@ package packets
 import (
 	"bytes"
 
-	"github.com/BRA1L0R/go-mcprot/packets/serialization"
 	"github.com/BRA1L0R/go-mcprot/varint"
 )
 
 type UncompressedPacket struct {
-	Length int
-
-	PacketID int
-	Data     bytes.Buffer
+	*standardPacket
 }
 
 // Serialize() on UncompressedPackets never returns an error
 // but it's in the return params to be compliant to the PacketOp interface
-func (p *UncompressedPacket) Serialize() []byte {
+//
+// note: compressionTreshold is not used in uncompressed packets
+func (p *UncompressedPacket) Serialize(compressionTreshold int32) ([]byte, error) {
 	encodedPacketId, pIdLength := varint.EncodeVarInt(p.PacketID)
 
-	p.Length = pIdLength + p.Data.Len()
+	p.Length = pIdLength + int32(p.Data.Len())
 	encodedLength, _ := varint.EncodeVarInt(p.Length)
 
 	dataBuffer := new(bytes.Buffer)
 	dataBuffer.Write(encodedLength)
 	dataBuffer.Write(encodedPacketId)
-	dataBuffer.ReadFrom(&p.Data)
 
-	return dataBuffer.Bytes()
+	_, err := dataBuffer.ReadFrom(p.Data)
+	if err != nil {
+		return nil, err
+	}
+
+	return dataBuffer.Bytes(), nil
 }
 
-func (p *UncompressedPacket) SerializeData(inter interface{}) error {
-	return serialization.SerializeFields(inter, &p.Data)
-}
+func NewUncompressedPacket(packetId int32) *UncompressedPacket {
+	uncompressedPacket := new(UncompressedPacket)
+	uncompressedPacket.standardPacket = new(standardPacket)
+	uncompressedPacket.InitializePacket()
+	uncompressedPacket.PacketID = packetId
 
-func (p *UncompressedPacket) DeserializeData(inter interface{}) error {
-	return serialization.DeserializeFields(inter, &p.Data)
+	return uncompressedPacket
 }

@@ -21,7 +21,7 @@ type BlockEntity struct {
 }
 
 type ChunkPacket struct {
-	*packets.StandardPacket
+	*packets.CompressedPacket
 
 	ChunkX         int32      `type:"inherit"`
 	ChunkY         int32      `type:"inherit"`
@@ -85,7 +85,7 @@ func main() {
 			}
 
 			serverBoundKeepalive := packets.KeepAlivePacket{
-				StandardPacket: &packets.StandardPacket{PacketID: 0x10},
+				StandardPacket: &packets.CompressedPacket{PacketID: 0x10},
 				KeepAliveID:    receivedKeepalive.KeepAliveID,
 			}
 

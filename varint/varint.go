@@ -1,6 +1,7 @@
 package varint
 
 import (
+	"bytes"
 	"errors"
 	"io"
 )
@@ -9,11 +10,11 @@ var (
 	ErrVarIntTooBig = errors.New("var int is too big")
 )
 
-func EncodeVarInt(inputValue int) ([]byte, int) {
+func EncodeVarInt(inputValue int32) ([]byte, int32) {
 	value := uint32(inputValue)
 
-	buffer := []byte{}
-	written := 0
+	buffer := new(bytes.Buffer)
+	written := int32(0)
 
 	for {
 		temp := (byte)(value & 0b01111111)
@@ -23,7 +24,8 @@ func EncodeVarInt(inputValue int) ([]byte, int) {
 			temp |= 0b10000000
 		}
 
-		buffer = append(buffer, temp)
+		// buffer = append(buffer, temp)
+		buffer.WriteByte(temp)
 		written++
 
 		if value == 0 {
@@ -31,7 +33,7 @@ func EncodeVarInt(inputValue int) ([]byte, int) {
 		}
 	}
 
-	return buffer, written
+	return buffer.Bytes(), written
 }
 
 // DecodeReaderVarInt takes an io.Reader as a parameter and returns in order:
@@ -43,29 +45,55 @@ func EncodeVarInt(inputValue int) ([]byte, int) {
 // - an eventual error
 //
 // NOTE: It returns the number of bytes read even in occurance of an error
-func DecodeReaderVarInt(reader io.Reader) (int, int, error) {
-	numRead := 0
-	result := 0
+// func DecodeReaderVarInt(reader io.Reader) (int, int, error) {
+// 	numRead := 0
+// 	result := 0
 
-	read := make([]byte, 1)
+// 	read := make([]byte, 1)
 
-	for {
-		reader.Read(read)
-		readByte := read[0]
+// 	for {
+// 		_, err := reader.Read(read)
+// 		if err != nil {
+// 			return result, numRead, err
+// 		}
 
-		value := int(readByte & 0b01111111)
-		result |= (value << (7 * numRead))
+// 		readByte := read[0]
 
-		numRead++
-		if numRead > 5 {
-			// panic("VarInt is too big >:/")
-			return 0, numRead, ErrVarIntTooBig
+// 		value := int(readByte & 0b01111111)
+// 		result |= (value << (7 * numRead))
+
+// 		numRead++
+// 		if numRead > 5 {
+// 			// panic("VarInt is too big >:/")
+// 			return 0, numRead, ErrVarIntTooBig
+// 		}
+
+// 		if (readByte & 0b10000000) == 0 {
+// 			break
+// 		}
+// 	}
+
+// 	return result, numRead, nil
+// }
+
+func DecodeReaderVarInt(r io.Reader) (result int32, read int32, err error) {
+	var V uint32
+	readbuf := make([]byte, 1)
+
+	for sec := byte(0x80); sec&0x80 != 0; read++ {
+		if read > 5 {
+			return 0, read, errors.New("VarInt is too big")
 		}
 
-		if (readByte & 0b10000000) == 0 {
-			break
+		_, err := r.Read(readbuf)
+		if err != nil {
+			return 0, read, err
 		}
+
+		sec = readbuf[0]
+
+		V |= uint32(sec&0x7F) << uint32(7*read)
 	}
 
-	return result, numRead, nil
+	return int32(V), read, nil
 }

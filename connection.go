@@ -1,15 +1,14 @@
 package mcprot
 
-type dataSerialization interface {
-	SerializeData(inter interface{}) error
-}
-
 type PacketOp interface {
-	dataSerialization
-	Serialize(compressionTreshold int) ([]byte, error)
+	SerializeData(inter interface{}) error
+	Serialize(compressionTreshold int32) ([]byte, error)
+	InitializePacket()
 }
 
 func (mc *McProt) WritePacket(packet PacketOp) error {
+	packet.InitializePacket()
+
 	if err := packet.SerializeData(packet); err != nil {
 		return err
 	}
@@ -20,19 +19,5 @@ func (mc *McProt) WritePacket(packet PacketOp) error {
 	}
 
 	_, err = mc.connection.Write(serialized)
-	return err
-}
-
-type UncompressedPacketOp interface {
-	dataSerialization
-	Serialize() []byte
-}
-
-func (mc *McProt) WriteUncompressedPacket(packet UncompressedPacketOp) error {
-	if err := packet.SerializeData(packet); err != nil {
-		return err
-	}
-
-	_, err := mc.connection.Write(packet.Serialize())
 	return err
 }

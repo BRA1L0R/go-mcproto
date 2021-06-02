@@ -5,6 +5,7 @@ import (
 	"net"
 
 	"github.com/BRA1L0R/go-mcprot/packets"
+	"github.com/BRA1L0R/go-mcprot/packets/models"
 )
 
 func (mc *McProt) Initialize() error {
@@ -18,10 +19,8 @@ func (mc *McProt) Initialize() error {
 	// and state information
 	// NOTE: serveraddress and serverport are not used by the
 	// notchian server, but it's best practice to fill them
-	hp := packets.HandshakePacket{
-		UncompressedPacket: &packets.UncompressedPacket{
-			PacketID: 0x00,
-		},
+	hp := models.HandshakePacket{
+		UncompressedPacket: packets.NewUncompressedPacket(0x00),
 
 		ProtocolVersion: mc.ProtocolVersion,
 		ServerAddress:   mc.Host,
@@ -29,29 +28,37 @@ func (mc *McProt) Initialize() error {
 		NextState:       2,
 	}
 
-	mc.WriteUncompressedPacket(hp)
+	err = mc.WritePacket(&hp)
+	if err != nil {
+		return err
+	}
 
-	loginPacket := packets.LoginStartPacket{
-		UncompressedPacket: &packets.UncompressedPacket{
-			PacketID: 0x00,
-		},
+	loginPacket := models.LoginStartPacket{
+		UncompressedPacket: packets.NewUncompressedPacket(0x00),
 
 		Name: mc.Name,
 	}
 
-	mc.WriteUncompressedPacket(loginPacket)
+	err = mc.WritePacket(&loginPacket)
+	if err != nil {
+		return err
+	}
 
 	p, err := mc.ReceiveUncompressedPacket()
 	if err != nil {
 		return err
 	}
 
-	setCompPacket := packets.SetCompressionPacket{UncompressedPacket: p}
+	setCompPacket := models.SetCompressionPacket{UncompressedPacket: p}
 	if setCompPacket.PacketID != 0x03 {
 		panic(setCompPacket.Data.String())
 	}
 
-	setCompPacket.DeserializeData(&setCompPacket)
+	err = setCompPacket.DeserializeData(&setCompPacket)
+	if err != nil {
+		return err
+	}
+
 	mc.compressionTreshold = setCompPacket.Treshold
 
 	pack, err := mc.ReceivePacket()
@@ -59,11 +66,15 @@ func (mc *McProt) Initialize() error {
 		return err
 	}
 
-	loginSuccessPacket := packets.LoginSuccessPacket{StandardPacket: pack}
+	loginSuccessPacket := models.LoginSuccessPacket{CompressedPacket: pack}
 	if loginSuccessPacket.PacketID != 0x02 {
 		panic(loginSuccessPacket.Data.String())
 	}
 
-	loginSuccessPacket.DeserializeData(&loginSuccessPacket)
+	err = loginSuccessPacket.DeserializeData(&loginSuccessPacket)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

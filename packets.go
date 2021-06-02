@@ -3,6 +3,7 @@ package mcprot
 import (
 	"bytes"
 	"compress/zlib"
+	"errors"
 	"io"
 
 	"github.com/BRA1L0R/go-mcprot/packets"
@@ -21,9 +22,14 @@ func (mc *McProt) ReceiveUncompressedPacket() (*packets.UncompressedPacket, erro
 	}
 
 	packetContent := make([]byte, packetLength-packetIdLen)
-	mc.connection.Read(packetContent)
 
-	packet := new(packets.UncompressedPacket)
+	// _, err = mc.connection.Read(packetContent)
+	_, err = io.ReadFull(mc.connection, packetContent)
+	if err != nil {
+		return nil, err
+	}
+
+	packet := packets.NewUncompressedPacket(0)
 
 	packet.Length = packetLength
 	packet.PacketID = packetId
@@ -32,7 +38,7 @@ func (mc *McProt) ReceiveUncompressedPacket() (*packets.UncompressedPacket, erro
 	return packet, nil
 }
 
-func (mc *McProt) ReceivePacket() (*packets.StandardPacket, error) {
+func (mc *McProt) ReceivePacket() (*packets.CompressedPacket, error) {
 	packetLength, _, err := varint.DecodeReaderVarInt(mc.connection)
 	if err != nil {
 		return nil, err
@@ -41,62 +47,56 @@ func (mc *McProt) ReceivePacket() (*packets.StandardPacket, error) {
 	dataLength, dLenLen, err := varint.DecodeReaderVarInt(mc.connection)
 	if err != nil {
 		// drain rest of the package to avoid problems
-		mc.drain(packetLength - dLenLen)
 		return nil, err
 	}
 
+	remainingData := make([]byte, packetLength-dLenLen)
+	read, err := io.ReadFull(mc.connection, remainingData)
+	if err != nil {
+		return nil, err
+	}
+
+	remainingDataBuffer := bytes.NewBuffer(remainingData)
+
+	newPacket := packets.NewCompressedPacket(0)
+	newPacket.Length = packetLength
+	newPacket.DataLength = dataLength
+
 	if dataLength != 0 {
-		// drain the remaining packet
-		compressedData := make([]byte, packetLength-dLenLen)
-		mc.connection.Read(compressedData)
+		if int32(read) != (packetLength - dLenLen) {
+			return nil, errors.New("bytes read from buffer and bytes that needed to be fulfilled mismatch")
+		}
 
-		compressedBuffer := bytes.NewBuffer(compressedData)
-
-		reader, err := zlib.NewReader(compressedBuffer)
+		reader, err := zlib.NewReader(remainingDataBuffer)
 		if err != nil {
 			return nil, err
 		}
 
-		uncompressedBuffer := new(bytes.Buffer)
-		io.Copy(uncompressedBuffer, reader)
-
-		packetId, pIdLen, err := varint.DecodeReaderVarInt(uncompressedBuffer)
-		if err != nil {
-			mc.drain(dataLength - pIdLen)
+		uncompressedData := make([]byte, dataLength)
+		_, err = reader.Read(uncompressedData)
+		if err != nil && err != io.EOF {
 			return nil, err
 		}
 
-		newPacket := new(packets.StandardPacket)
-		newPacket.Length = packetLength
-		newPacket.DataLength = dataLength
+		newPacket.Data = bytes.NewBuffer(uncompressedData)
+
+		packetId, _, err := varint.DecodeReaderVarInt(newPacket.Data)
+		if err != nil {
+			return nil, err
+		}
+
 		newPacket.PacketID = packetId
-		newPacket.Data.ReadFrom(uncompressedBuffer)
 
-		return newPacket, nil
+		return newPacket, err
 	} else {
-		packetId, pIdLen, err := varint.DecodeReaderVarInt(mc.connection)
+		packetId, _, err := varint.DecodeReaderVarInt(remainingDataBuffer)
 		if err != nil {
-			mc.drain(packetLength - (dLenLen + pIdLen))
 			return nil, err
 		}
 
-		newPacket := new(packets.StandardPacket)
-		newPacket.Length = packetLength
-		newPacket.DataLength = dataLength
 		newPacket.PacketID = packetId
-
-		remainingDataLen := packetLength - dLenLen - pIdLen
-
-		data := make([]byte, remainingDataLen)
-		mc.connection.Read(data)
-
-		newPacket.Data.Write(data)
+		newPacket.Data = remainingDataBuffer
 
 		return newPacket, nil
 	}
-}
-
-func (mc *McProt) drain(size int) {
-	drain := make([]byte, size)
-	mc.connection.Read(drain)
 }

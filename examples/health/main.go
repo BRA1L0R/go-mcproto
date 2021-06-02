@@ -10,7 +10,7 @@ import (
 )
 
 type UpdateHealth struct {
-	*packets.StandardPacket
+	*packets.CompressedPacket
 
 	Health         float32 `type:"inherit"`
 	Food           int     `type:"varint"`
@@ -58,7 +58,7 @@ func main() {
 			}
 
 			serverBoundKeepalive := packets.KeepAlivePacket{
-				StandardPacket: &packets.StandardPacket{PacketID: 0x10},
+				StandardPacket: &packets.CompressedPacket{PacketID: 0x10},
 				KeepAliveID:    receivedKeepalive.KeepAliveID,
 			}
 

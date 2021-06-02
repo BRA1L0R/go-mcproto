@@ -11,11 +11,13 @@ import (
 )
 
 func SerializeFields(inter interface{}, databuf *bytes.Buffer) error {
-	t := reflect.ValueOf(inter)
+	v := reflect.ValueOf(inter)
 
-	if t.Kind() != reflect.Struct {
-		return errors.New("inter should be an interface not a pointer to one")
+	if v.Kind() != reflect.Ptr {
+		return errors.New("inter should be a pointer to an interface")
 	}
+
+	t := v.Elem()
 
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
@@ -27,11 +29,11 @@ func SerializeFields(inter interface{}, databuf *bytes.Buffer) error {
 
 		switch typeField.Tag.Get("type") {
 		case "varint":
-			encodedData, _ := varint.EncodeVarInt(field.Interface().(int))
+			encodedData, _ := varint.EncodeVarInt(field.Interface().(int32))
 			databuf.Write(encodedData)
 		case "string":
 			data, _ := field.Interface().(string)
-			strLenEncoded, _ := varint.EncodeVarInt(len(data))
+			strLenEncoded, _ := varint.EncodeVarInt(int32(len(data)))
 
 			databuf.Write(strLenEncoded)
 			databuf.Write([]byte(data))
@@ -60,7 +62,7 @@ func SerializeFields(inter interface{}, databuf *bytes.Buffer) error {
 			}
 		case "varintarr":
 			length, _ := getLength(t, typeField)
-			fieldArr := field.Addr().Interface().([]int)
+			fieldArr := field.Addr().Interface().([]int32)
 
 			fieldArrSize := len(fieldArr)
 

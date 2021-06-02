@@ -8,13 +8,13 @@ type McProt struct {
 	Host            string
 	Port            uint16
 	Name            string
-	ProtocolVersion int
+	ProtocolVersion int32
 
-	compressionTreshold int
+	compressionTreshold int32
 
 	connection net.Conn
 }
 
-func (mc *McProt) GetCompressionTreshold() int {
+func (mc *McProt) GetCompressionTreshold() int32 {
 	return mc.compressionTreshold
 }

@@ -46,7 +46,7 @@ func main() {
 			}
 
 			serverBoundKeepalive := packets.KeepAlivePacket{
-				StandardPacket: &packets.StandardPacket{PacketID: 0x10},
+				StandardPacket: &packets.CompressedPacket{PacketID: 0x10},
 				KeepAliveID:    receivedKeepalive.KeepAliveID,
 			}
 

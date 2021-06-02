@@ -47,7 +47,11 @@ func DeserializeFields(interPtr interface{}, databuf *bytes.Buffer) error {
 			}
 
 			dataString := make([]byte, strLength)
-			databuf.Read(dataString)
+
+			_, err = databuf.Read(dataString)
+			if err != nil {
+				return err
+			}
 
 			field.SetString(string(dataString))
 		case "inherit":
@@ -57,7 +61,11 @@ func DeserializeFields(interPtr interface{}, databuf *bytes.Buffer) error {
 			}
 		case "ignore":
 			ignoreBuf := make([]byte, lengthTag)
-			databuf.Read(ignoreBuf)
+
+			_, err := databuf.Read(ignoreBuf)
+			if err != nil {
+				return err
+			}
 		case "byte":
 			value, err := databuf.ReadByte()
 			if err != nil {
@@ -103,12 +111,12 @@ func DeserializeFields(interPtr interface{}, databuf *bytes.Buffer) error {
 				return err
 			}
 
-			arrayField, ok := field.Addr().Interface().(*[]int)
+			arrayField, ok := field.Addr().Interface().(*[]int32)
 			if !ok {
 				return ErrIncorrectFieldType
 			}
 
-			*arrayField = make([]int, length)
+			*arrayField = make([]int32, length)
 
 			for i := 0; i < length; i++ {
 				decodedVarint, _, err := varint.DecodeReaderVarInt(databuf)
