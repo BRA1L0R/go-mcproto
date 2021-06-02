@@ -7,8 +7,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/BRA1L0R/go-mcprot/packets/serialization"
-	"github.com/BRA1L0R/go-mcprot/varint"
+	"github.com/BRA1L0R/go-mcproto/packets/serialization"
+	"github.com/BRA1L0R/go-mcproto/varint"
 	"github.com/Tnze/go-mc/nbt"
 )
 

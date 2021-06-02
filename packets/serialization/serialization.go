@@ -5,7 +5,7 @@ import (
 	"encoding/binary"
 	"reflect"
 
-	"github.com/BRA1L0R/go-mcprot/varint"
+	"github.com/BRA1L0R/go-mcproto/varint"
 	"github.com/Tnze/go-mc/nbt"
 )
 

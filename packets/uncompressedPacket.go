@@ -3,7 +3,7 @@ package packets
 import (
 	"bytes"
 
-	"github.com/BRA1L0R/go-mcprot/varint"
+	"github.com/BRA1L0R/go-mcproto/varint"
 )
 
 type UncompressedPacket struct {

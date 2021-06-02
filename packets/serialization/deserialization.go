@@ -5,7 +5,7 @@ import (
 	"encoding/binary"
 	"reflect"
 
-	"github.com/BRA1L0R/go-mcprot/varint"
+	"github.com/BRA1L0R/go-mcproto/varint"
 	"github.com/Tnze/go-mc/nbt"
 )
 
@@ -57,13 +57,15 @@ func DeserializeFields(t reflect.Value, databuf *bytes.Buffer) error {
 			if err != nil {
 				return err
 			}
-		case "byte":
-			value, err := databuf.ReadByte()
-			if err != nil {
-				return err
-			}
 
-			field.SetUint(uint64(value))
+		// Instead of byte you can use inherit
+		// case "byte":
+		// 	value, err := databuf.ReadByte()
+		// 	if err != nil {
+		// 		return err
+		// 	}
+
+		// 	field.SetUint(uint64(value))
 		case "bytes":
 			buf := make([]byte, lengthTag)
 			_, err = databuf.Read(buf)

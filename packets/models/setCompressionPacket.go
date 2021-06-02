@@ -1,6 +1,6 @@
 package models
 
-import "github.com/BRA1L0R/go-mcprot/packets"
+import "github.com/BRA1L0R/go-mcproto/packets"
 
 type SetCompressionPacket struct {
 	*packets.UncompressedPacket

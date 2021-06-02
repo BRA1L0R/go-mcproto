@@ -1,14 +1,18 @@
-package mcprot
+package mcproto
 
 import (
 	"fmt"
 	"net"
 
-	"github.com/BRA1L0R/go-mcprot/packets"
-	"github.com/BRA1L0R/go-mcprot/packets/models"
+	"github.com/BRA1L0R/go-mcproto/packets"
+	"github.com/BRA1L0R/go-mcproto/packets/models"
 )
 
-func (mc *McProt) Initialize() error {
+// Initializes the connection to the server by sending
+// the handshake packet and the login packet
+//
+// Server Host, Port and Username are defined in the McProto object
+func (mc *McProto) Initialize() error {
 	conn, err := net.Dial("tcp", fmt.Sprintf("%s:%v", mc.Host, mc.Port))
 	mc.connection = conn
 	if err != nil {

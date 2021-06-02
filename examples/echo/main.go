@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"runtime"
 
-	"github.com/BRA1L0R/go-mcprot"
-	"github.com/BRA1L0R/go-mcprot/packets"
-	"github.com/BRA1L0R/go-mcprot/packets/models"
+	"github.com/BRA1L0R/go-mcproto"
+	"github.com/BRA1L0R/go-mcproto/packets"
+	"github.com/BRA1L0R/go-mcproto/packets/models"
 )
 
 type ClientBoundChatMessage struct {
@@ -40,7 +40,7 @@ type ChatMessage struct {
 func main() {
 	// flag.Parse()
 
-	client := mcprot.McProt{
+	client := mcproto.McProto{
 		Host:            "152.89.170.123",
 		Port:            25565,
 		ProtocolVersion: 754, // 1.16.5

@@ -4,10 +4,10 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/BRA1L0R/go-mcprot"
-	"github.com/BRA1L0R/go-mcprot/packets"
-	"github.com/BRA1L0R/go-mcprot/packets/models"
-	"github.com/BRA1L0R/go-mcprot/varint"
+	"github.com/BRA1L0R/go-mcproto"
+	"github.com/BRA1L0R/go-mcproto/packets"
+	"github.com/BRA1L0R/go-mcproto/packets/models"
+	"github.com/BRA1L0R/go-mcproto/varint"
 )
 
 type HeightMaps struct {
@@ -48,7 +48,7 @@ var (
 func main() {
 	flag.Parse()
 
-	client := mcprot.McProt{
+	client := mcproto.McProto{
 		Host:            *host,
 		Port:            uint16(*port),
 		ProtocolVersion: 754, // 1.16.5

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"reflect"
 
-	"github.com/BRA1L0R/go-mcprot/packets/serialization"
+	"github.com/BRA1L0R/go-mcproto/packets/serialization"
 )
 
 type standardPacket struct {

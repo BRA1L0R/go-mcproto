@@ -1,4 +1,4 @@
-package mcprot
+package mcproto
 
 type PacketOp interface {
 	SerializeData(inter interface{}) error
@@ -6,7 +6,7 @@ type PacketOp interface {
 	InitializePacket()
 }
 
-func (mc *McProt) WritePacket(packet PacketOp) error {
+func (mc *McProto) WritePacket(packet PacketOp) error {
 	packet.InitializePacket()
 
 	if err := packet.SerializeData(packet); err != nil {

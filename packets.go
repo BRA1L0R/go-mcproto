@@ -1,4 +1,4 @@
-package mcprot
+package mcproto
 
 import (
 	"bytes"
@@ -6,11 +6,11 @@ import (
 	"errors"
 	"io"
 
-	"github.com/BRA1L0R/go-mcprot/packets"
-	"github.com/BRA1L0R/go-mcprot/varint"
+	"github.com/BRA1L0R/go-mcproto/packets"
+	"github.com/BRA1L0R/go-mcproto/varint"
 )
 
-func (mc *McProt) ReceiveUncompressedPacket() (*packets.UncompressedPacket, error) {
+func (mc *McProto) ReceiveUncompressedPacket() (*packets.UncompressedPacket, error) {
 	packetLength, _, err := varint.DecodeReaderVarInt(mc.connection)
 	if err != nil {
 		return nil, err
@@ -38,7 +38,7 @@ func (mc *McProt) ReceiveUncompressedPacket() (*packets.UncompressedPacket, erro
 	return packet, nil
 }
 
-func (mc *McProt) ReceivePacket() (*packets.CompressedPacket, error) {
+func (mc *McProto) ReceivePacket() (*packets.CompressedPacket, error) {
 	packetLength, _, err := varint.DecodeReaderVarInt(mc.connection)
 	if err != nil {
 		return nil, err

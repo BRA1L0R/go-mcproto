@@ -1,10 +1,10 @@
-package mcprot
+package mcproto
 
 import (
 	"net"
 )
 
-type McProt struct {
+type McProto struct {
 	Host            string
 	Port            uint16
 	Name            string
@@ -15,6 +15,6 @@ type McProt struct {
 	connection net.Conn
 }
 
-func (mc *McProt) GetCompressionTreshold() int32 {
+func (mc *McProto) GetCompressionTreshold() int32 {
 	return mc.compressionTreshold
 }

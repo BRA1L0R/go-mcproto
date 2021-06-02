@@ -1,4 +1,4 @@
-module github.com/BRA1L0R/go-mcprot
+module github.com/BRA1L0R/go-mcproto
 
 go 1.16
 
