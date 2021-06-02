@@ -6,6 +6,7 @@ import (
 
 	"github.com/BRA1L0R/go-mcprot"
 	"github.com/BRA1L0R/go-mcprot/packets"
+	"github.com/BRA1L0R/go-mcprot/packets/models"
 	"github.com/BRA1L0R/go-mcprot/varint"
 )
 
@@ -32,7 +33,10 @@ func main() {
 		Name:            "GoHealth-Test",
 	}
 
-	client.Initialize()
+	err := client.Initialize()
+	if err != nil {
+		panic(err)
+	}
 
 	for {
 		packet, err := client.ReceivePacket()
@@ -45,24 +49,31 @@ func main() {
 
 		switch packet.PacketID { // Update Health
 		case 0x49:
-			healthPacket := UpdateHealth{StandardPacket: packet}
-			healthPacket.DeserializeData(&healthPacket)
+			healthPacket := UpdateHealth{CompressedPacket: packet}
+
+			err := healthPacket.DeserializeData(&healthPacket)
+			if err != nil {
+				panic(err)
+			}
 
 			fmt.Printf("Health Update: %vH %vF\n", healthPacket.Health, healthPacket.Food)
 		case 0x1F:
-			receivedKeepalive := packets.KeepAlivePacket{StandardPacket: packet}
+			receivedKeepalive := models.KeepAlivePacket{CompressedPacket: packet}
 
 			err := receivedKeepalive.DeserializeData(&receivedKeepalive)
 			if err != nil {
 				panic(err)
 			}
 
-			serverBoundKeepalive := packets.KeepAlivePacket{
-				StandardPacket: &packets.CompressedPacket{PacketID: 0x10},
-				KeepAliveID:    receivedKeepalive.KeepAliveID,
+			serverBoundKeepalive := models.KeepAlivePacket{
+				CompressedPacket: packets.NewCompressedPacket(0x10),
+				KeepAliveID:      receivedKeepalive.KeepAliveID,
 			}
 
-			client.WritePacket(serverBoundKeepalive)
+			err = client.WritePacket(&serverBoundKeepalive)
+			if err != nil {
+				panic(err)
+			}
 		}
 	}
 }

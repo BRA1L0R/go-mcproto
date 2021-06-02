@@ -6,6 +6,7 @@ import (
 
 	"github.com/BRA1L0R/go-mcprot"
 	"github.com/BRA1L0R/go-mcprot/packets"
+	"github.com/BRA1L0R/go-mcprot/packets/models"
 	"github.com/BRA1L0R/go-mcprot/varint"
 )
 
@@ -26,16 +27,16 @@ type ChunkPacket struct {
 	ChunkX         int32      `type:"inherit"`
 	ChunkY         int32      `type:"inherit"`
 	FullChunk      bool       `type:"inherit"`
-	PrimaryBitMask int        `type:"varint"`
+	PrimaryBitMask int32      `type:"varint"`
 	HeightMaps     HeightMaps `type:"nbt"`
 
-	BiomesArrayLength int   `type:"varint"    depends_on:"FullChunk"`
-	Biomes            []int `type:"varintarr" depends_on:"FullChunk" len:"BiomesArrayLength"`
+	BiomesArrayLength int32   `type:"varint"    depends_on:"FullChunk"`
+	Biomes            []int32 `type:"varintarr" depends_on:"FullChunk" len:"BiomesArrayLength"`
 
-	ChunkDataSize int    `type:"varint"`
+	ChunkDataSize int32  `type:"varint"`
 	ChunkData     []byte `type:"bytes" len:"ChunkDataSize"`
 
-	BlockEntitiesArrayLength int           `type:"varint"`
+	BlockEntitiesArrayLength int32         `type:"varint"`
 	BlockEntities            []BlockEntity `type:"nbt" len:"BlockEntitiesArrayLength"`
 }
 
@@ -54,7 +55,10 @@ func main() {
 		Name:            "GolangComp",
 	}
 
-	client.Initialize()
+	err := client.Initialize()
+	if err != nil {
+		panic(err)
+	}
 
 	fmt.Println("Joined the server as:", client.Name)
 
@@ -69,7 +73,7 @@ func main() {
 
 		switch packet.PacketID {
 		case 0x20:
-			chunk := ChunkPacket{StandardPacket: packet}
+			chunk := ChunkPacket{CompressedPacket: packet}
 			err := chunk.DeserializeData(&chunk)
 			if err != nil {
 				fmt.Println(err)
@@ -77,19 +81,22 @@ func main() {
 
 			fmt.Printf("Chunk X: %v, Chunk Y: %v\nSpecial Block Locations: %v\n", chunk.ChunkX, chunk.ChunkY, chunk.BlockEntities)
 		case 0x1F:
-			receivedKeepalive := packets.KeepAlivePacket{StandardPacket: packet}
+			receivedKeepalive := models.KeepAlivePacket{CompressedPacket: packet}
 
 			err := receivedKeepalive.DeserializeData(&receivedKeepalive)
 			if err != nil {
 				panic(err)
 			}
 
-			serverBoundKeepalive := packets.KeepAlivePacket{
-				StandardPacket: &packets.CompressedPacket{PacketID: 0x10},
-				KeepAliveID:    receivedKeepalive.KeepAliveID,
+			serverBoundKeepalive := models.KeepAlivePacket{
+				CompressedPacket: packets.NewCompressedPacket(0x10),
+				KeepAliveID:      receivedKeepalive.KeepAliveID,
 			}
 
-			client.WritePacket(serverBoundKeepalive)
+			err = client.WritePacket(&serverBoundKeepalive)
+			if err != nil {
+				panic(err)
+			}
 		}
 	}
 }
