@@ -24,7 +24,7 @@ func (mc *McProto) Initialize() error {
 	// NOTE: serveraddress and serverport are not used by the
 	// notchian server, but it's best practice to fill them
 	hp := models.HandshakePacket{
-		UncompressedPacket: packets.NewUncompressedPacket(0x00),
+		MinecraftPacket: packets.MinecraftPacket{PacketID: 0x00},
 
 		ProtocolVersion: mc.ProtocolVersion,
 		ServerAddress:   mc.Host,
@@ -38,7 +38,7 @@ func (mc *McProto) Initialize() error {
 	}
 
 	loginPacket := models.LoginStartPacket{
-		UncompressedPacket: packets.NewUncompressedPacket(0x00),
+		MinecraftPacket: packets.MinecraftPacket{PacketID: 0x00},
 
 		Name: mc.Name,
 	}
@@ -48,12 +48,12 @@ func (mc *McProto) Initialize() error {
 		return err
 	}
 
-	p, err := mc.ReceiveUncompressedPacket()
+	p, err := mc.ReceivePacket()
 	if err != nil {
 		return err
 	}
 
-	setCompPacket := models.SetCompressionPacket{UncompressedPacket: p}
+	setCompPacket := models.SetCompressionPacket{MinecraftPacket: p}
 	if setCompPacket.PacketID != 0x03 {
 		panic(setCompPacket.Data.String())
 	}
@@ -70,7 +70,7 @@ func (mc *McProto) Initialize() error {
 		return err
 	}
 
-	loginSuccessPacket := models.LoginSuccessPacket{CompressedPacket: pack}
+	loginSuccessPacket := models.LoginSuccessPacket{MinecraftPacket: pack}
 	if loginSuccessPacket.PacketID != 0x02 {
 		panic(loginSuccessPacket.Data.String())
 	}

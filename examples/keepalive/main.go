@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/BRA1L0R/go-mcproto"
-	"github.com/BRA1L0R/go-mcproto/packets"
 	"github.com/BRA1L0R/go-mcproto/packets/models"
 	"github.com/BRA1L0R/go-mcproto/varint"
 )
@@ -42,19 +41,22 @@ func main() {
 		}
 
 		if packet.PacketID == 0x1F {
-			receivedKeepalive := models.KeepAlivePacket{CompressedPacket: packet}
+			receivedKeepalive := models.KeepAlivePacket{MinecraftPacket: packet}
 
 			err := receivedKeepalive.DeserializeData(&receivedKeepalive)
 			if err != nil {
 				panic(err)
 			}
 
-			serverBoundKeepalive := models.KeepAlivePacket{
-				CompressedPacket: packets.NewCompressedPacket(0x10),
-				KeepAliveID:      receivedKeepalive.KeepAliveID,
-			}
+			// serverBoundKeepalive := models.KeepAlivePacket{
+			// 	CompressedPacket: packets.NewCompressedPacket(0x10),
+			// 	KeepAliveID:      receivedKeepalive.KeepAliveID,
+			// }
+			serverBoundKeepalive := new(models.KeepAlivePacket)
+			serverBoundKeepalive.KeepAliveID = receivedKeepalive.KeepAliveID
+			serverBoundKeepalive.PacketID = 0x10
 
-			err = client.WritePacket(&serverBoundKeepalive)
+			err = client.WritePacket(serverBoundKeepalive)
 			if err != nil {
 				panic(err)
 			}

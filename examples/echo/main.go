@@ -11,7 +11,7 @@ import (
 )
 
 type ClientBoundChatMessage struct {
-	*packets.CompressedPacket
+	packets.MinecraftPacket
 
 	JsonData string     `type:"string"`
 	Position byte       `type:"inherit"`
@@ -19,7 +19,7 @@ type ClientBoundChatMessage struct {
 }
 
 type ServerBoundChatMessage struct {
-	*packets.CompressedPacket
+	packets.MinecraftPacket
 
 	Message string `type:"string"`
 }
@@ -53,8 +53,8 @@ func main() {
 	}
 
 	botInfoMessage := ServerBoundChatMessage{
-		CompressedPacket: packets.NewCompressedPacket(0x03),
-		Message:          fmt.Sprintf("I'm running on %v, %v", runtime.GOOS, runtime.GOARCH),
+		MinecraftPacket: packets.MinecraftPacket{PacketID: 0x03},
+		Message:         fmt.Sprintf("I'm running on %v, %v", runtime.GOOS, runtime.GOARCH),
 	}
 
 	err = client.WritePacket(&botInfoMessage)
@@ -65,13 +65,12 @@ func main() {
 	for {
 		packet, err := client.ReceivePacket()
 		if err != nil {
-			fmt.Println(err)
-			continue
+			panic(err)
 		}
 
 		switch packet.PacketID {
 		case 0x0E:
-			receivedChatMessage := ClientBoundChatMessage{CompressedPacket: packet}
+			receivedChatMessage := ClientBoundChatMessage{MinecraftPacket: packet}
 
 			err := receivedChatMessage.DeserializeData(&receivedChatMessage)
 			if err != nil {
@@ -94,30 +93,36 @@ func main() {
 
 				fmt.Printf("<%s> %s\n", user, playerText)
 
-				chatMessage := ServerBoundChatMessage{
-					CompressedPacket: packets.NewCompressedPacket(0x03),
-					Message:          playerText,
-				}
+				// chatMessage := ServerBoundChatMessage{
+				// 	CompressedPacket: packets.MinecraftPacket{PacketID: 0x03},
+				// 	Message:          playerText,
+				// }
+				chatMessage := new(ServerBoundChatMessage)
+				chatMessage.PacketID = 0x03
+				chatMessage.Message = playerText
 
-				err := client.WritePacket(&chatMessage)
+				err := client.WritePacket(chatMessage)
 				if err != nil {
 					panic(err)
 				}
 			}
 		case 0x1F:
-			receivedKeepalive := models.KeepAlivePacket{CompressedPacket: packet}
+			receivedKeepalive := models.KeepAlivePacket{MinecraftPacket: packet}
 
 			err := receivedKeepalive.DeserializeData(&receivedKeepalive)
 			if err != nil {
 				panic(err)
 			}
 
-			serverBoundKeepalive := models.KeepAlivePacket{
-				CompressedPacket: packets.NewCompressedPacket(0x10),
-				KeepAliveID:      receivedKeepalive.KeepAliveID,
-			}
+			// serverBoundKeepalive := models.KeepAlivePacket{
+			// 	CompressedPacket: packets.NewCompressedPacket(0x10),
+			// 	KeepAliveID:      receivedKeepalive.KeepAliveID,
+			// }
+			serverBoundKeepalive := new(models.KeepAlivePacket)
+			serverBoundKeepalive.PacketID = 0x10
+			serverBoundKeepalive.KeepAliveID = receivedKeepalive.KeepAliveID
 
-			err = client.WritePacket(&serverBoundKeepalive)
+			err = client.WritePacket(serverBoundKeepalive)
 			if err != nil {
 				panic(err)
 			}

@@ -22,7 +22,7 @@ type BlockEntity struct {
 }
 
 type ChunkPacket struct {
-	*packets.CompressedPacket
+	packets.MinecraftPacket
 
 	ChunkX         int32      `type:"inherit"`
 	ChunkY         int32      `type:"inherit"`
@@ -73,7 +73,7 @@ func main() {
 
 		switch packet.PacketID {
 		case 0x20:
-			chunk := ChunkPacket{CompressedPacket: packet}
+			chunk := ChunkPacket{MinecraftPacket: packet}
 			err := chunk.DeserializeData(&chunk)
 			if err != nil {
 				fmt.Println(err)
@@ -81,7 +81,7 @@ func main() {
 
 			fmt.Printf("Chunk X: %v, Chunk Y: %v\nSpecial Block Locations: %v\n", chunk.ChunkX, chunk.ChunkY, chunk.BlockEntities)
 		case 0x1F:
-			receivedKeepalive := models.KeepAlivePacket{CompressedPacket: packet}
+			receivedKeepalive := models.KeepAlivePacket{MinecraftPacket: packet}
 
 			err := receivedKeepalive.DeserializeData(&receivedKeepalive)
 			if err != nil {
@@ -89,8 +89,8 @@ func main() {
 			}
 
 			serverBoundKeepalive := models.KeepAlivePacket{
-				CompressedPacket: packets.NewCompressedPacket(0x10),
-				KeepAliveID:      receivedKeepalive.KeepAliveID,
+				MinecraftPacket: packets.MinecraftPacket{},
+				KeepAliveID:     receivedKeepalive.KeepAliveID,
 			}
 
 			err = client.WritePacket(&serverBoundKeepalive)

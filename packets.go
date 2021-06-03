@@ -10,93 +10,94 @@ import (
 	"github.com/BRA1L0R/go-mcproto/varint"
 )
 
-func (mc *McProto) ReceiveUncompressedPacket() (*packets.UncompressedPacket, error) {
+func (mc *McProto) ReceivePacket() (packets.MinecraftPacket, error) {
+	// as wiki.vg, negative or zero values for compression will disable compression,
+	// meaning the format will remain uncompressed
+	if mc.compressionTreshold <= 0 {
+		return mc.receiveUncompressedPacket()
+	} else {
+		return mc.receiveCompressedPacket()
+	}
+}
+
+func (mc *McProto) receiveUncompressedPacket() (packet packets.MinecraftPacket, err error) {
 	packetLength, _, err := varint.DecodeReaderVarInt(mc.connection)
 	if err != nil {
-		return nil, err
+		return packet, err
 	}
 
 	packetId, packetIdLen, err := varint.DecodeReaderVarInt(mc.connection)
 	if err != nil {
-		return nil, err
+		return packet, err
 	}
 
 	packetContent := make([]byte, packetLength-packetIdLen)
-
-	// _, err = mc.connection.Read(packetContent)
 	_, err = io.ReadFull(mc.connection, packetContent)
 	if err != nil {
-		return nil, err
+		return packet, err
 	}
 
-	packet := packets.NewUncompressedPacket(0)
-
-	packet.Length = packetLength
 	packet.PacketID = packetId
-	packet.Data.Write(packetContent)
+	packet.Data = bytes.NewBuffer(packetContent)
 
-	return packet, nil
+	return
 }
 
-func (mc *McProto) ReceivePacket() (*packets.CompressedPacket, error) {
+func (mc *McProto) receiveCompressedPacket() (packet packets.MinecraftPacket, err error) {
 	packetLength, _, err := varint.DecodeReaderVarInt(mc.connection)
 	if err != nil {
-		return nil, err
+		return packet, err
 	}
 
 	dataLength, dLenLen, err := varint.DecodeReaderVarInt(mc.connection)
 	if err != nil {
 		// drain rest of the package to avoid problems
-		return nil, err
+		return packet, err
 	}
 
 	remainingData := make([]byte, packetLength-dLenLen)
 	read, err := io.ReadFull(mc.connection, remainingData)
 	if err != nil {
-		return nil, err
+		return packet, err
 	}
 
 	remainingDataBuffer := bytes.NewBuffer(remainingData)
 
-	newPacket := packets.NewCompressedPacket(0)
-	newPacket.Length = packetLength
-	newPacket.DataLength = dataLength
-
 	if dataLength != 0 {
 		if int32(read) != (packetLength - dLenLen) {
-			return nil, errors.New("bytes read from buffer and bytes that needed to be fulfilled mismatch")
+			return packet, errors.New("bytes read from buffer and bytes that needed to be fulfilled mismatch")
 		}
 
 		reader, err := zlib.NewReader(remainingDataBuffer)
 		if err != nil {
-			return nil, err
+			return packet, err
 		}
 
 		uncompressedData := make([]byte, dataLength)
 		_, err = reader.Read(uncompressedData)
 		if err != nil && err != io.EOF {
-			return nil, err
+			return packet, err
 		}
 
-		newPacket.Data = bytes.NewBuffer(uncompressedData)
+		packet.Data = bytes.NewBuffer(uncompressedData)
 
-		packetId, _, err := varint.DecodeReaderVarInt(newPacket.Data)
+		packetId, _, err := varint.DecodeReaderVarInt(packet.Data)
 		if err != nil {
-			return nil, err
+			return packet, err
 		}
 
-		newPacket.PacketID = packetId
+		packet.PacketID = packetId
 
-		return newPacket, reader.Close()
+		return packet, reader.Close()
 	} else {
 		packetId, _, err := varint.DecodeReaderVarInt(remainingDataBuffer)
 		if err != nil {
-			return nil, err
+			return packet, err
 		}
 
-		newPacket.PacketID = packetId
-		newPacket.Data = remainingDataBuffer
+		packet.PacketID = packetId
+		packet.Data = remainingDataBuffer
 
-		return newPacket, nil
+		return packet, nil
 	}
 }

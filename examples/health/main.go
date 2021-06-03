@@ -11,7 +11,7 @@ import (
 )
 
 type UpdateHealth struct {
-	*packets.CompressedPacket
+	packets.MinecraftPacket
 
 	Health         float32 `type:"inherit"`
 	Food           int     `type:"varint"`
@@ -49,7 +49,7 @@ func main() {
 
 		switch packet.PacketID { // Update Health
 		case 0x49:
-			healthPacket := UpdateHealth{CompressedPacket: packet}
+			healthPacket := UpdateHealth{MinecraftPacket: packet}
 
 			err := healthPacket.DeserializeData(&healthPacket)
 			if err != nil {
@@ -58,19 +58,22 @@ func main() {
 
 			fmt.Printf("Health Update: %vH %vF\n", healthPacket.Health, healthPacket.Food)
 		case 0x1F:
-			receivedKeepalive := models.KeepAlivePacket{CompressedPacket: packet}
+			receivedKeepalive := models.KeepAlivePacket{MinecraftPacket: packet}
 
 			err := receivedKeepalive.DeserializeData(&receivedKeepalive)
 			if err != nil {
 				panic(err)
 			}
 
-			serverBoundKeepalive := models.KeepAlivePacket{
-				CompressedPacket: packets.NewCompressedPacket(0x10),
-				KeepAliveID:      receivedKeepalive.KeepAliveID,
-			}
+			// serverBoundKeepalive := models.KeepAlivePacket{
+			// 	CompressedPacket: packets.NewCompressedPacket(0x10),
+			// 	KeepAliveID:      receivedKeepalive.KeepAliveID,
+			// }
+			serverBoundKeepalive := new(models.KeepAlivePacket)
+			serverBoundKeepalive.PacketID = 0x10
+			serverBoundKeepalive.KeepAliveID = receivedKeepalive.KeepAliveID
 
-			err = client.WritePacket(&serverBoundKeepalive)
+			err = client.WritePacket(serverBoundKeepalive)
 			if err != nil {
 				panic(err)
 			}
