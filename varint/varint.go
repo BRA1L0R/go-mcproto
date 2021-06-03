@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	ErrVarIntTooBig = errors.New("var int is too big")
+	ErrVarIntTooBig = errors.New("mcproto: var int is too big")
 )
 
 func EncodeVarInt(inputValue int32) ([]byte, int32) {

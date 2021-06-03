@@ -65,7 +65,7 @@ func (mc *McProto) receiveCompressedPacket() (packet packets.MinecraftPacket, er
 
 	if dataLength != 0 {
 		if int32(read) != (packetLength - dLenLen) {
-			return packet, errors.New("bytes read from buffer and bytes that needed to be fulfilled mismatch")
+			return packet, errors.New("mcproto: bytes read from buffer and bytes that needed to be fulfilled mismatch")
 		}
 
 		reader, err := zlib.NewReader(remainingDataBuffer)

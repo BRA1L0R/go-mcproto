@@ -57,15 +57,6 @@ func DeserializeFields(t reflect.Value, databuf *bytes.Buffer) error {
 			if err != nil {
 				return err
 			}
-
-		// Instead of byte you can use inherit
-		// case "byte":
-		// 	value, err := databuf.ReadByte()
-		// 	if err != nil {
-		// 		return err
-		// 	}
-
-		// 	field.SetUint(uint64(value))
 		case "bytes":
 			buf := make([]byte, lengthTag)
 			_, err = databuf.Read(buf)

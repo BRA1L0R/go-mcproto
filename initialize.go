@@ -1,6 +1,7 @@
 package mcproto
 
 import (
+	"errors"
 	"fmt"
 	"net"
 
@@ -48,37 +49,39 @@ func (mc *McProto) Initialize() error {
 		return err
 	}
 
-	p, err := mc.ReceivePacket()
-	if err != nil {
-		return err
+	for {
+		p, err := mc.ReceivePacket()
+		if err != nil {
+			return err
+		}
+
+		switch p.PacketID {
+		case 0x00: // disconnected
+			disconnectPacket := models.DisconnectPacket{MinecraftPacket: p}
+			if err := disconnectPacket.DeserializeData(&disconnectPacket); err != nil {
+				return err
+			}
+
+			return fmt.Errorf("mcproto: the server disconnected the client, reason: %s", disconnectPacket.Reason)
+		case 0x01: // encryption request
+			return errors.New("mcproto: received an encryption request which means the server is in online mode. Online mode not currently supported")
+		case 0x03: // set compression
+			setCompression := models.SetCompressionPacket{MinecraftPacket: p}
+			err := setCompression.DeserializeData(&setCompression)
+			if err != nil {
+				return err
+			}
+
+			if setCompression.Treshold < 0 {
+				return errors.New("mcproto: server sent a set compression packet with a negative treshold")
+			}
+
+			mc.compressionTreshold = setCompression.Treshold
+		case 0x02: // login success
+			loginSuccess := models.LoginStartPacket{MinecraftPacket: p}
+			err := loginSuccess.DeserializeData(&loginSuccess)
+
+			return err
+		}
 	}
-
-	setCompPacket := models.SetCompressionPacket{MinecraftPacket: p}
-	if setCompPacket.PacketID != 0x03 {
-		panic(setCompPacket.Data.String())
-	}
-
-	err = setCompPacket.DeserializeData(&setCompPacket)
-	if err != nil {
-		return err
-	}
-
-	mc.compressionTreshold = setCompPacket.Treshold
-
-	pack, err := mc.ReceivePacket()
-	if err != nil {
-		return err
-	}
-
-	loginSuccessPacket := models.LoginSuccessPacket{MinecraftPacket: pack}
-	if loginSuccessPacket.PacketID != 0x02 {
-		panic(loginSuccessPacket.Data.String())
-	}
-
-	err = loginSuccessPacket.DeserializeData(&loginSuccessPacket)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

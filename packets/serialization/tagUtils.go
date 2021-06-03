@@ -31,6 +31,6 @@ func getLength(inter reflect.Value, field reflect.StructField) (int, error) {
 	} else if lenField := inter.FieldByName(lengthTag); lenField.IsValid() {
 		return int(lenField.Int()), nil
 	} else {
-		return 0, errors.New("no way to decode the length found")
+		return 0, errors.New("mcproto: no way to decode the length found")
 	}
 }

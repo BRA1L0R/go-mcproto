@@ -9,7 +9,7 @@ func getReflectValue(inter interface{}) (val reflect.Value, err error) {
 	v := reflect.ValueOf(inter)
 
 	if v.Kind() != reflect.Ptr {
-		err = errors.New("inter should be a pointer to an interface")
+		err = errors.New("mcproto: inter should be a pointer to an interface")
 		return
 	}
 
