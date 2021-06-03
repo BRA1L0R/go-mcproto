@@ -22,7 +22,7 @@ func TestBasicSerialization(t *testing.T) {
 	testStruct := TestStruct{VarInt: encodedVarint}
 	testBuffer := new(bytes.Buffer)
 
-	err := serialization.SerializeFields(reflect.ValueOf(&testStruct).Elem(), testBuffer)
+	err := serialization.SerializeFields(reflect.ValueOf(testStruct), testBuffer)
 	if err != nil {
 		t.Error(err)
 	}
@@ -54,7 +54,7 @@ func TestFullSerialization(t *testing.T) {
 		Ignore       interface{} `type:"ignore" len:"5"`
 		Byte         byte        `type:"inherit"`
 		Nbt          NbtStruct   `type:"nbt"`
-		VarIntArr    []int32     `type:"varintarr"`
+		VarIntArr    []int32     `type:"varint"`
 	}
 
 	testStruct := TestStruct{
@@ -68,7 +68,7 @@ func TestFullSerialization(t *testing.T) {
 
 	testBuffer := new(bytes.Buffer)
 
-	err := serialization.SerializeFields(reflect.ValueOf(&testStruct).Elem(), testBuffer)
+	err := serialization.SerializeFields(reflect.ValueOf(testStruct), testBuffer)
 	if err != nil {
 		t.Error(err)
 		t.FailNow()
@@ -172,31 +172,6 @@ func TestFullSerialization(t *testing.T) {
 	}
 }
 
-func TestVarIntArrFiller(t *testing.T) {
-	type ArrFillerTest struct {
-		VarIntArr []int32 `type:"varintarr" len:"10"`
-	}
-
-	arrFiller := ArrFillerTest{VarIntArr: []int32{0x01, 0x02}}
-	testBuffer := new(bytes.Buffer)
-
-	err := serialization.SerializeFields(reflect.ValueOf(&arrFiller).Elem(), testBuffer)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if testBuffer.Len() != 10 {
-		t.Error("buffer is not as long as expected")
-	}
-
-	for i := 0; i < 10; i++ {
-		_, _, err := varint.DecodeReaderVarInt(testBuffer)
-		if err != nil {
-			t.Error(err)
-		}
-	}
-}
-
 func TestUnknownInherit(t *testing.T) {
 	type UnknownInheritTest struct {
 		UnknownInherit string `type:"inherit"`
@@ -205,7 +180,7 @@ func TestUnknownInherit(t *testing.T) {
 	inheritTest := UnknownInheritTest{UnknownInherit: ""}
 	testBuffer := new(bytes.Buffer)
 
-	err := serialization.SerializeFields(reflect.ValueOf(&inheritTest).Elem(), testBuffer)
+	err := serialization.SerializeFields(reflect.ValueOf(inheritTest), testBuffer)
 	if err == nil {
 		t.Error("SerializeFields did not return an error on an unknown inherit type")
 	}
@@ -219,7 +194,7 @@ func TestBadLenField(t *testing.T) {
 	testBuffer := new(bytes.Buffer)
 	badLenTest := BadLenTest{FillerWithBadLen: 123}
 
-	err := serialization.SerializeFields(reflect.ValueOf(&badLenTest).Elem(), testBuffer)
+	err := serialization.SerializeFields(reflect.ValueOf(badLenTest), testBuffer)
 	if err == nil {
 		t.Error("SerializeFields did not return an error on a bad len value")
 	}
@@ -234,7 +209,7 @@ func TestDependency(t *testing.T) {
 	trueBuffer := new(bytes.Buffer)
 	trueDependency := PacketWithDependency{HasVarint: true, VarInt: 0x05}
 
-	err := serialization.SerializeFields(reflect.ValueOf(&trueDependency).Elem(), trueBuffer)
+	err := serialization.SerializeFields(reflect.ValueOf(trueDependency), trueBuffer)
 	if err != nil {
 		t.Error(err)
 	}
@@ -246,12 +221,38 @@ func TestDependency(t *testing.T) {
 	falseBuffer := new(bytes.Buffer)
 	falseDependency := PacketWithDependency{HasVarint: false}
 
-	err = serialization.SerializeFields(reflect.ValueOf(&falseDependency).Elem(), falseBuffer)
+	err = serialization.SerializeFields(reflect.ValueOf(falseDependency), falseBuffer)
 	if err != nil {
 		t.Error(err)
 	}
 
 	if falseBuffer.Len() != 1 {
+		t.Error("buffer length not as expected")
+	}
+}
+
+func TestStructArr(t *testing.T) {
+	type ChildStruct struct {
+		VarInt int32  `type:"varint"`
+		String string `type:"string"`
+	}
+
+	type ParentStruct struct {
+		StructArr []ChildStruct `type:"array"`
+	}
+
+	testBuffer := new(bytes.Buffer)
+	nestedStructArr := ParentStruct{StructArr: []ChildStruct{
+		{VarInt: 1, String: "Hello"},
+		{VarInt: 5, String: "World"},
+	}}
+
+	err := serialization.SerializeFields(reflect.ValueOf(nestedStructArr), testBuffer)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if testBuffer.Len() != 14 {
 		t.Error("buffer length not as expected")
 	}
 }

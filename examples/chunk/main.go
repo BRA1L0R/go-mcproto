@@ -31,7 +31,7 @@ type ChunkPacket struct {
 	HeightMaps     HeightMaps `type:"nbt"`
 
 	BiomesArrayLength int32   `type:"varint"    depends_on:"FullChunk"`
-	Biomes            []int32 `type:"varintarr" depends_on:"FullChunk" len:"BiomesArrayLength"`
+	Biomes            []int32 `type:"varint" depends_on:"FullChunk" len:"BiomesArrayLength"`
 
 	ChunkDataSize int32  `type:"varint"`
 	ChunkData     []byte `type:"bytes" len:"ChunkDataSize"`

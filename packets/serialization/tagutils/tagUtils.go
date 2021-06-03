@@ -1,4 +1,4 @@
-package serialization
+package tagutils
 
 import (
 	"errors"
@@ -12,7 +12,7 @@ import (
 // or the dependency was not met
 //
 // returns true if the dependency has been found AND it's true
-func checkDependency(inter reflect.Value, field reflect.StructField) bool {
+func CheckDependency(inter reflect.Value, field reflect.StructField) bool {
 	depend := field.Tag.Get("depends_on")
 	if depend == "" {
 		return true
@@ -22,10 +22,10 @@ func checkDependency(inter reflect.Value, field reflect.StructField) bool {
 	return val.Bool()
 }
 
-func getLength(inter reflect.Value, field reflect.StructField) (int, error) {
+func GetLength(inter reflect.Value, field reflect.StructField) (int, error) {
 	lengthTag := field.Tag.Get("len")
 	if lengthTag == "" {
-		return 0, nil
+		return -1, nil
 	} else if length, err := strconv.Atoi(lengthTag); err == nil {
 		return length, nil
 	} else if lenField := inter.FieldByName(lengthTag); lenField.IsValid() {

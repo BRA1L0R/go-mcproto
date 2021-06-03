@@ -2,11 +2,10 @@ package serialization
 
 import (
 	"bytes"
-	"encoding/binary"
 	"reflect"
 
-	"github.com/BRA1L0R/go-mcproto/varint"
-	"github.com/Tnze/go-mc/nbt"
+	"github.com/BRA1L0R/go-mcproto/packets/serialization/tagutils"
+	"github.com/BRA1L0R/go-mcproto/packets/serialization/types"
 )
 
 func DeserializeFields(t reflect.Value, databuf *bytes.Buffer) error {
@@ -14,102 +13,32 @@ func DeserializeFields(t reflect.Value, databuf *bytes.Buffer) error {
 		field := t.Field(i)
 		typeField := t.Type().Field(i)
 
-		lengthTag, err := getLength(t, typeField)
+		lengthTag, err := tagutils.GetLength(t, typeField)
 		if err != nil {
 			return err
 		}
 
-		if !checkDependency(t, typeField) {
+		if !tagutils.CheckDependency(t, typeField) {
 			continue
 		}
 
 		switch typeField.Tag.Get("type") {
 		case "varint":
-			decodedVal, _, err := varint.DecodeReaderVarInt(databuf)
-			if err != nil {
-				return err
-			}
-
-			field.SetInt(int64(decodedVal))
+			err = types.DeserializeVarint(field, lengthTag, databuf)
 		case "string":
-			strLength, _, err := varint.DecodeReaderVarInt(databuf)
-			if err != nil {
-				return err
-			}
-
-			dataString := make([]byte, strLength)
-
-			_, err = databuf.Read(dataString)
-			if err != nil {
-				return err
-			}
-
-			field.SetString(string(dataString))
+			err = types.DeserializeString(field, databuf)
 		case "inherit":
-			err := binary.Read(databuf, binary.BigEndian, field.Addr().Interface())
-			if err != nil {
-				return err
-			}
+			err = types.DeserializeInherit(field, databuf)
 		case "ignore":
-			ignoreBuf := make([]byte, lengthTag)
-
-			_, err := databuf.Read(ignoreBuf)
-			if err != nil {
-				return err
-			}
+			err = types.DeserializeIgnore(lengthTag, databuf)
 		case "bytes":
-			buf := make([]byte, lengthTag)
-			_, err = databuf.Read(buf)
-			if err != nil {
-				return err
-			}
-
-			field.SetBytes(buf)
+		// err = types.Deserialize
 		case "nbt":
-			decoder := nbt.NewDecoder(databuf)
+			err = types.DeserializeNbt(field, typeField, lengthTag, databuf)
+		}
 
-			if typeField.Type.Kind() == reflect.Slice {
-				if lengthTag <= 0 {
-					continue
-				}
-				field.Set(reflect.MakeSlice(typeField.Type, lengthTag, lengthTag))
-
-				for i := 0; i < lengthTag; i++ {
-					err := decoder.Decode(field.Index(i).Addr().Interface())
-					if err != nil {
-						return err
-					}
-				}
-			} else {
-
-				err := decoder.Decode(field.Addr().Interface())
-				if err != nil {
-					return err
-				}
-
-			}
-		case "varintarr":
-			length, err := getLength(t, typeField)
-			// fmt.Printf("%v\n\n\n", length)
-			if err != nil {
-				return err
-			}
-
-			arrayField, ok := field.Addr().Interface().(*[]int32)
-			if !ok {
-				return ErrIncorrectFieldType
-			}
-
-			*arrayField = make([]int32, length)
-
-			for i := 0; i < length; i++ {
-				decodedVarint, _, err := varint.DecodeReaderVarInt(databuf)
-				if err != nil {
-					return err
-				}
-
-				(*arrayField)[i] = decodedVarint
-			}
+		if err != nil {
+			return err
 		}
 	}
 

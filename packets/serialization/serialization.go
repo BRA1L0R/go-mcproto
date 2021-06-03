@@ -2,11 +2,10 @@ package serialization
 
 import (
 	"bytes"
-	"encoding/binary"
 	"reflect"
 
-	"github.com/BRA1L0R/go-mcproto/varint"
-	"github.com/Tnze/go-mc/nbt"
+	"github.com/BRA1L0R/go-mcproto/packets/serialization/tagutils"
+	"github.com/BRA1L0R/go-mcproto/packets/serialization/types"
 )
 
 func SerializeFields(t reflect.Value, databuf *bytes.Buffer) error {
@@ -14,55 +13,34 @@ func SerializeFields(t reflect.Value, databuf *bytes.Buffer) error {
 		field := t.Field(i)
 		typeField := t.Type().Field(i)
 
-		if !checkDependency(t, typeField) {
+		if !tagutils.CheckDependency(t, typeField) {
 			continue
+		}
+
+		lengthTag, err := tagutils.GetLength(t, typeField)
+		if err != nil {
+			return err
 		}
 
 		switch typeField.Tag.Get("type") {
 		case "varint":
-			encodedData, _ := varint.EncodeVarInt(field.Interface().(int32))
-			databuf.Write(encodedData)
+			err = types.SerializeVarInt(field, databuf)
 		case "string":
-			data, _ := field.Interface().(string)
-			strLenEncoded, _ := varint.EncodeVarInt(int32(len(data)))
-
-			databuf.Write(strLenEncoded)
-			databuf.Write([]byte(data))
+			err = types.SerializeString(field, databuf)
 		case "inherit":
-			inheritedData := field.Interface()
-
-			if err := binary.Write(databuf, binary.BigEndian, inheritedData); err != nil {
-				return err
-			}
+			err = types.SerializeInherit(field, databuf)
 		case "ignore":
-			ignoreLength, err := getLength(t, typeField)
-			if err != nil {
-				return err
-			}
-
-			ignoreBuf := make([]byte, ignoreLength)
-
-			databuf.Write(ignoreBuf)
+			err = types.SerializeIgnore(lengthTag, databuf)
+		case "bytes":
+			err = types.SerializeBytes(field, lengthTag, databuf)
 		case "nbt":
-			err := nbt.Marshal(databuf, field.Interface())
-			if err != nil {
-				return err
-			}
-		case "varintarr":
-			length, _ := getLength(t, typeField)
-			fieldArr := field.Interface().([]int32)
+			err = types.SerializeNbt(field, databuf)
+		case "array":
+			err = types.SerializeArray(field, databuf, SerializeFields)
+		}
 
-			fieldArrSize := len(fieldArr)
-
-			for i := 0; i < fieldArrSize; i++ {
-				encoded, _ := varint.EncodeVarInt(fieldArr[i])
-				databuf.Write(encoded)
-			}
-
-			if length > fieldArrSize {
-				filler := make([]byte, length-fieldArrSize)
-				databuf.Write(filler)
-			}
+		if err != nil {
+			return err
 		}
 	}
 
