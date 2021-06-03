@@ -5,7 +5,13 @@ import (
 	"reflect"
 )
 
-func SerializeBytes(field reflect.Value, length int, databuf *bytes.Buffer) error {
+func SerializeBytes(field reflect.Value, databuf *bytes.Buffer) error {
+	_, err := databuf.Write(field.Bytes())
+	return err
+}
+
+func DeserializeBytes(field reflect.Value, length int, databuf *bytes.Buffer) error {
+
 	buf := make([]byte, length)
 	_, err := databuf.Read(buf)
 	if err != nil {

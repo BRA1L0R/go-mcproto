@@ -55,6 +55,7 @@ func TestFullSerialization(t *testing.T) {
 		Byte         byte        `type:"inherit"`
 		Nbt          NbtStruct   `type:"nbt"`
 		VarIntArr    []int32     `type:"varint"`
+		Bytes        []byte      `type:"bytes"`
 	}
 
 	testStruct := TestStruct{
@@ -64,6 +65,7 @@ func TestFullSerialization(t *testing.T) {
 		Byte:         0xFA,
 		Nbt:          NbtStruct{Test1: "nbt_test", Test2: -1234},
 		VarIntArr:    []int32{34, 12, 10, 56},
+		Bytes:        []byte{0x1, 0x2, 0x3, 0x4},
 	}
 
 	testBuffer := new(bytes.Buffer)
@@ -163,6 +165,18 @@ func TestFullSerialization(t *testing.T) {
 
 		if v != decodedVarint {
 			t.Error("VarInt array element mismatch")
+		}
+	}
+
+	// Bytes
+	for _, v := range testStruct.Bytes {
+		byteRead, err := testBuffer.ReadByte()
+		if err != nil {
+			t.Error(err)
+		}
+
+		if byteRead != v {
+			t.Error("bytes read mismatch")
 		}
 	}
 

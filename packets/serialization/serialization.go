@@ -32,7 +32,7 @@ func SerializeFields(t reflect.Value, databuf *bytes.Buffer) error {
 		case "ignore":
 			err = types.SerializeIgnore(lengthTag, databuf)
 		case "bytes":
-			err = types.SerializeBytes(field, lengthTag, databuf)
+			err = types.SerializeBytes(field, databuf)
 		case "nbt":
 			err = types.SerializeNbt(field, databuf)
 		case "array":
