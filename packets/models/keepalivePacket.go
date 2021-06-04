@@ -6,5 +6,5 @@ type KeepAlivePacket struct {
 	// *packets.CompressedPacket
 	packets.MinecraftPacket
 
-	KeepAliveID int64 `type:"inherit"`
+	KeepAliveID int64 `mc:"inherit"`
 }

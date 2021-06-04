@@ -24,20 +24,20 @@ type BlockEntity struct {
 type ChunkPacket struct {
 	packets.MinecraftPacket
 
-	ChunkX         int32      `type:"inherit"`
-	ChunkY         int32      `type:"inherit"`
-	FullChunk      bool       `type:"inherit"`
-	PrimaryBitMask int32      `type:"varint"`
-	HeightMaps     HeightMaps `type:"nbt"`
+	ChunkX         int32      `mc:"inherit"`
+	ChunkY         int32      `mc:"inherit"`
+	FullChunk      bool       `mc:"inherit"`
+	PrimaryBitMask int32      `mc:"varint"`
+	HeightMaps     HeightMaps `mc:"nbt"`
 
-	BiomesArrayLength int32   `type:"varint"    depends_on:"FullChunk"`
-	Biomes            []int32 `type:"varint" depends_on:"FullChunk" len:"BiomesArrayLength"`
+	BiomesArrayLength int32   `mc:"varint"    depends_on:"FullChunk"`
+	Biomes            []int32 `mc:"varint" depends_on:"FullChunk" len:"BiomesArrayLength"`
 
-	ChunkDataSize int32  `type:"varint"`
-	ChunkData     []byte `type:"bytes" len:"ChunkDataSize"`
+	ChunkDataSize int32  `mc:"varint"`
+	ChunkData     []byte `mc:"bytes" len:"ChunkDataSize"`
 
-	BlockEntitiesArrayLength int32         `type:"varint"`
-	BlockEntities            []BlockEntity `type:"nbt" len:"BlockEntitiesArrayLength"`
+	BlockEntitiesArrayLength int32         `mc:"varint"`
+	BlockEntities            []BlockEntity `mc:"nbt" len:"BlockEntitiesArrayLength"`
 }
 
 var (

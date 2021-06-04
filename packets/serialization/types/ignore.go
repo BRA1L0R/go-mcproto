@@ -2,11 +2,6 @@ package types
 
 import (
 	"bytes"
-	"errors"
-)
-
-var (
-	ErrIgnoreLenUnknown = errors.New("mcproto: ignore type specified but no len tag present")
 )
 
 func SerializeIgnore(ignoreLen int, databuf *bytes.Buffer) error {

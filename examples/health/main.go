@@ -13,9 +13,9 @@ import (
 type UpdateHealth struct {
 	packets.MinecraftPacket
 
-	Health         float32 `type:"inherit"`
-	Food           int     `type:"varint"`
-	FoodSaturation float32 `type:"inherit"`
+	Health         float32 `mc:"inherit"`
+	Food           int     `mc:"varint"`
+	FoodSaturation float32 `mc:"inherit"`
 }
 
 var (

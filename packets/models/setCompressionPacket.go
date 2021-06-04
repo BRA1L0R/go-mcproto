@@ -6,5 +6,5 @@ type SetCompressionPacket struct {
 	// *packets.UncompressedPacket
 	packets.MinecraftPacket
 
-	Treshold int32 `type:"varint"`
+	Treshold int32 `mc:"varint"`
 }

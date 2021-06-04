@@ -13,15 +13,15 @@ import (
 type ClientBoundChatMessage struct {
 	packets.MinecraftPacket
 
-	JsonData string     `type:"string"`
-	Position byte       `type:"inherit"`
-	Sender   complex128 `type:"inherit"`
+	JsonData string     `mc:"string"`
+	Position byte       `mc:"inherit"`
+	Sender   complex128 `mc:"inherit"`
 }
 
 type ServerBoundChatMessage struct {
 	packets.MinecraftPacket
 
-	Message string `type:"string"`
+	Message string `mc:"string"`
 }
 
 type ChatMessage struct {

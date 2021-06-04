@@ -22,7 +22,7 @@ func SerializeFields(t reflect.Value, databuf *bytes.Buffer) error {
 			return err
 		}
 
-		switch typeField.Tag.Get("type") {
+		switch typeField.Tag.Get("mc") {
 		case "varint":
 			err = types.SerializeVarInt(field, databuf)
 		case "string":

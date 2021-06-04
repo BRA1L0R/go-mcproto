@@ -8,17 +8,34 @@ import (
 )
 
 func SerializeNbt(field reflect.Value, databuf *bytes.Buffer) error {
-	return nbt.Marshal(databuf, field.Interface())
+	if field.Type().Kind() == reflect.Slice {
+		length := field.Len()
+
+		for i := 0; i < length; i++ {
+			arrField := field.Index(i)
+
+			err := nbt.Marshal(databuf, arrField.Interface())
+			if err != nil {
+				return err
+			}
+		}
+	} else {
+		return nbt.Marshal(databuf, field.Interface())
+	}
+
+	return nil
 }
 
-func DeserializeNbt(field reflect.Value, typeField reflect.StructField, length int, databuf *bytes.Buffer) error {
+func DeserializeNbt(field reflect.Value, length int, databuf *bytes.Buffer) error {
 	decoder := nbt.NewDecoder(databuf)
+	typeField := field.Type()
 
-	if typeField.Type.Kind() == reflect.Slice {
+	if typeField.Kind() == reflect.Slice {
 		if length < 0 {
-			return nil
+			return ErrIgnoreLenUnknown
 		}
-		field.Set(reflect.MakeSlice(typeField.Type, length, length))
+
+		field.Set(reflect.MakeSlice(typeField, length, length))
 
 		for i := 0; i < length; i++ {
 			err := decoder.Decode(field.Index(i).Addr().Interface())

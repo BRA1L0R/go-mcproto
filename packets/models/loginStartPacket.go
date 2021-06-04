@@ -6,5 +6,5 @@ type LoginStartPacket struct {
 	// *packets.UncompressedPacket
 	packets.MinecraftPacket
 
-	Name string `type:"string"`
+	Name string `mc:"string"`
 }

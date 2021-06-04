@@ -22,7 +22,7 @@ func DeserializeFields(t reflect.Value, databuf *bytes.Buffer) error {
 			continue
 		}
 
-		switch typeField.Tag.Get("type") {
+		switch typeField.Tag.Get("mc") {
 		case "varint":
 			err = types.DeserializeVarint(field, lengthTag, databuf)
 		case "string":
@@ -32,9 +32,11 @@ func DeserializeFields(t reflect.Value, databuf *bytes.Buffer) error {
 		case "ignore":
 			err = types.DeserializeIgnore(lengthTag, databuf)
 		case "bytes":
-		// err = types.Deserialize
+			err = types.DeserializeBytes(field, lengthTag, databuf)
 		case "nbt":
-			err = types.DeserializeNbt(field, typeField, lengthTag, databuf)
+			err = types.DeserializeNbt(field, lengthTag, databuf)
+		case "array":
+			err = types.DeserializeArray(field, lengthTag, databuf, DeserializeFields)
 		}
 
 		if err != nil {

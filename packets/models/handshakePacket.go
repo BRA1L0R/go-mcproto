@@ -6,8 +6,8 @@ type HandshakePacket struct {
 	// *packets.UncompressedPacket
 	packets.MinecraftPacket
 
-	ProtocolVersion int32  `type:"varint"`
-	ServerAddress   string `type:"string"`
-	ServerPort      uint16 `type:"inherit"`
-	NextState       int32  `type:"varint"`
+	ProtocolVersion int32  `mc:"varint"`
+	ServerAddress   string `mc:"string"`
+	ServerPort      uint16 `mc:"inherit"`
+	NextState       int32  `mc:"varint"`
 }
