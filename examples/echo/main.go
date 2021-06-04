@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"runtime"
 
@@ -32,17 +33,17 @@ type ChatMessage struct {
 	}
 }
 
-// var (
-// 	host = flag.String("host", "127.0.0.1", "Server host")
-// 	port = flag.Uint("port", 25565, "Server port")
-// )
+var (
+	host = flag.String("host", "127.0.0.1", "Server host")
+	port = flag.Uint("port", 25565, "Server port")
+)
 
 func main() {
-	// flag.Parse()
+	flag.Parse()
 
 	client := mcproto.McProto{
-		Host:            "152.89.170.123",
-		Port:            25565,
+		Host:            *host,
+		Port:            uint16(*port),
 		ProtocolVersion: 754, // 1.16.5
 		Name:            "Echo_Bot",
 	}
@@ -114,10 +115,6 @@ func main() {
 				panic(err)
 			}
 
-			// serverBoundKeepalive := models.KeepAlivePacket{
-			// 	CompressedPacket: packets.NewCompressedPacket(0x10),
-			// 	KeepAliveID:      receivedKeepalive.KeepAliveID,
-			// }
 			serverBoundKeepalive := new(models.KeepAlivePacket)
 			serverBoundKeepalive.PacketID = 0x10
 			serverBoundKeepalive.KeepAliveID = receivedKeepalive.KeepAliveID
