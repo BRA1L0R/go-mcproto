@@ -30,7 +30,7 @@ func DeserializeArray(field reflect.Value, length int, databuf *bytes.Buffer, De
 	}
 
 	if length < 0 {
-		return ErrIgnoreLenUnknown
+		return ErrMissingLen
 	}
 
 	field.Set(reflect.MakeSlice(field.Type(), length, length))

@@ -32,7 +32,7 @@ func DeserializeNbt(field reflect.Value, length int, databuf *bytes.Buffer) erro
 
 	if typeField.Kind() == reflect.Slice {
 		if length < 0 {
-			return ErrIgnoreLenUnknown
+			return ErrMissingLen
 		}
 
 		field.Set(reflect.MakeSlice(typeField, length, length))

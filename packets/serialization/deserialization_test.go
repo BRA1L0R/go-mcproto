@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/BRA1L0R/go-mcproto/packets/serialization"
+	"github.com/BRA1L0R/go-mcproto/packets/serialization/tagutils"
 	"github.com/Tnze/go-mc/nbt"
 )
 
@@ -106,5 +107,19 @@ func TestDeserialization(t *testing.T) {
 		if v.String1 != "ArrayTest" || v.String2 != "ArrayTest2" {
 			t.Fatal("deserialized array elements not as encoded")
 		}
+	}
+}
+
+func TestInvalidLength(t *testing.T) {
+	type StructWithLength struct {
+		Bytes []byte `mc:"bytes" len:"invalid"`
+	}
+
+	testBuffer := new(bytes.Buffer)
+	testStruct := new(StructWithLength)
+
+	err := serialization.DeserializeFields(reflect.ValueOf(testStruct).Elem(), testBuffer)
+	if err != tagutils.ErrInvalidLen {
+		t.Fatal(err)
 	}
 }

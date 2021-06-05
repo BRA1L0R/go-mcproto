@@ -6,7 +6,7 @@ import (
 
 func SerializeIgnore(ignoreLen int, databuf *bytes.Buffer) error {
 	if ignoreLen < 0 {
-		return ErrIgnoreLenUnknown
+		return ErrMissingLen
 	}
 
 	ignoreBuf := make([]byte, ignoreLen)
@@ -17,7 +17,7 @@ func SerializeIgnore(ignoreLen int, databuf *bytes.Buffer) error {
 
 func DeserializeIgnore(ignoreLen int, databuf *bytes.Buffer) error {
 	if ignoreLen < 0 {
-		return ErrIgnoreLenUnknown
+		return ErrMissingLen
 	}
 
 	ignoreBuf := make([]byte, ignoreLen)

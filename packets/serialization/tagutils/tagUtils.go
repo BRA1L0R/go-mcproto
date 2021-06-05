@@ -6,6 +6,8 @@ import (
 	"strconv"
 )
 
+var ErrInvalidLen = errors.New("mcproto: invalid len tag")
+
 // checkDependency
 //
 // returns false either if the dependency has not been found
@@ -31,6 +33,6 @@ func GetLength(inter reflect.Value, field reflect.StructField) (int, error) {
 	} else if lenField := inter.FieldByName(lengthTag); lenField.IsValid() {
 		return int(lenField.Int()), nil
 	} else {
-		return 0, errors.New("mcproto: no way to decode the length found")
+		return 0, ErrInvalidLen
 	}
 }
