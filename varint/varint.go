@@ -10,11 +10,14 @@ var (
 	ErrVarIntTooBig = errors.New("mcproto: var int is too big")
 )
 
-func EncodeVarInt(inputValue int32) ([]byte, int32) {
+// EncoeVarInt is an implementation of the varint encoding as specified on wiki.vg
+//
+// It takes an int32 as an input, and returns the encoded varint in the form of
+// a byte slice, and also returns n which is the number of bytes the varint takes
+func EncodeVarInt(inputValue int32) (varint []byte, n int32) {
 	value := uint32(inputValue)
 
 	buffer := new(bytes.Buffer)
-	written := int32(0)
 
 	for {
 		temp := (byte)(value & 0b01111111)
@@ -24,16 +27,15 @@ func EncodeVarInt(inputValue int32) ([]byte, int32) {
 			temp |= 0b10000000
 		}
 
-		// buffer = append(buffer, temp)
 		buffer.WriteByte(temp)
-		written++
+		n++
 
 		if value == 0 {
 			break
 		}
 	}
 
-	return buffer.Bytes(), written
+	return buffer.Bytes(), n
 }
 
 // DecodeReaderVarInt takes an io.Reader as a parameter and returns in order:
