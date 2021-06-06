@@ -1,5 +1,5 @@
 <div align="center">
-<h1 border="none">go-mcproto ⚒️</h1>
+<img src="assets/illustration-transparent.png"/>
   <h4>Implementation of the Minecraft Protocol in go (still in progress...)</h4>
   <a href="https://pkg.go.dev/github.com/BRA1L0R/go-mcproto"><img src="https://pkg.go.dev/badge/github.com/BRA1L0R/go-mcproto.svg" alt="Go Reference"></a>
   <a href="http://github.com/BRA1L0R/go-mcproto"><img src="https://img.shields.io/github/go-mod/go-version/BRA1L0R/go-mcproto"></a>
