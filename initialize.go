@@ -9,14 +9,19 @@ import (
 	"github.com/BRA1L0R/go-mcproto/packets/models"
 )
 
+func (mc *McProto) Connect() error {
+	conn, err := net.Dial("tcp", fmt.Sprintf("%s:%v", mc.Host, mc.Port))
+	mc.connection = conn
+
+	return err
+}
+
 // Initializes the connection to the server by sending
 // the handshake packet and the login packet
 //
 // Server Host, Port and Username are defined in the McProto object
 func (mc *McProto) Initialize() error {
-	conn, err := net.Dial("tcp", fmt.Sprintf("%s:%v", mc.Host, mc.Port))
-	mc.connection = conn
-	if err != nil {
+	if err := mc.Connect(); err != nil {
 		return err
 	}
 
@@ -33,7 +38,7 @@ func (mc *McProto) Initialize() error {
 		NextState:       2,
 	}
 
-	err = mc.WritePacket(&hp)
+	err := mc.WritePacket(&hp)
 	if err != nil {
 		return err
 	}
