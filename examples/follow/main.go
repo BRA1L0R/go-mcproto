@@ -120,8 +120,8 @@ func main() {
 
 		switch packet.PacketID {
 		case 0x34:
-			receivedPositionAndLook := PlayerPositionAndLook{MinecraftPacket: packet}
-			err := receivedPositionAndLook.DeserializeData(&receivedPositionAndLook)
+			receivedPositionAndLook := new(PlayerPositionAndLook)
+			err := packet.DeserializeData(receivedPositionAndLook)
 			if err != nil {
 				panic(err)
 			}
@@ -135,9 +135,9 @@ func main() {
 				panic(err)
 			}
 		case 0x1F: // keepalive
-			receivedKeepalive := models.KeepAlivePacket{MinecraftPacket: packet}
-
-			err := receivedKeepalive.DeserializeData(&receivedKeepalive)
+			// receivedKeepalive := models.KeepAlivePacket{MinecraftPacket: packet}
+			receivedKeepalive := new(models.KeepAlivePacket)
+			err := packet.DeserializeData(receivedKeepalive)
 			if err != nil {
 				panic(err)
 			}
@@ -151,14 +151,14 @@ func main() {
 				panic(err)
 			}
 		case 0x04: // spawn player
-			lastSpawnedPlayer = SpawnPlayer{MinecraftPacket: packet}
 			err := lastSpawnedPlayer.DeserializeData(&lastSpawnedPlayer)
 			if err != nil {
 				panic(err)
 			}
 		case 0x27: // entity position
-			receivedPositionUpdate := EntityPositionUpdate{MinecraftPacket: packet}
-			err := receivedPositionUpdate.DeserializeData(&receivedPositionUpdate)
+			// receivedPositionUpdate := EntityPositionUpdate{MinecraftPacket: packet}
+			receivedPositionUpdate := new(EntityPositionUpdate)
+			err := packet.DeserializeData(receivedPositionUpdate)
 			if err != nil {
 				panic(err)
 			}
@@ -170,8 +170,9 @@ func main() {
 			UpdatePlayerPos(receivedPositionUpdate.DeltaX, receivedPositionUpdate.DeltaY, receivedPositionUpdate.DeltaZ)
 			FollowPlayer()
 		case 0x28: // entity position and rotation
-			receivedMultiPositionUpdate := EntityMultiPositionUpdate{MinecraftPacket: packet}
-			err := receivedMultiPositionUpdate.DeserializeData(&receivedMultiPositionUpdate)
+			// receivedMultiPositionUpdate := EntityMultiPositionUpdate{MinecraftPacket: packet}
+			receivedMultiPositionUpdate := new(EntityMultiPositionUpdate)
+			err := packet.DeserializeData(receivedMultiPositionUpdate)
 			if err != nil {
 				panic(err)
 			}

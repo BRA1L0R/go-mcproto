@@ -73,27 +73,26 @@ func main() {
 
 		switch packet.PacketID {
 		case 0x20:
-			chunk := ChunkPacket{MinecraftPacket: packet}
-			err := chunk.DeserializeData(&chunk)
+			chunk := new(ChunkPacket)
+			err := packet.DeserializeData(chunk)
 			if err != nil {
 				fmt.Println(err)
 			}
 
 			fmt.Printf("Chunk X: %v, Chunk Y: %v\nSpecial Block Locations: %v\n", chunk.ChunkX, chunk.ChunkY, chunk.BlockEntities)
 		case 0x1F:
-			receivedKeepalive := models.KeepAlivePacket{MinecraftPacket: packet}
-
-			err := receivedKeepalive.DeserializeData(&receivedKeepalive)
+			// receivedKeepalive := models.KeepAlivePacket{MinecraftPacket: packet}
+			receivedKeepalive := new(models.KeepAlivePacket)
+			err := packet.DeserializeData(receivedKeepalive)
 			if err != nil {
 				panic(err)
 			}
 
-			serverBoundKeepalive := models.KeepAlivePacket{
-				MinecraftPacket: packets.MinecraftPacket{},
-				KeepAliveID:     receivedKeepalive.KeepAliveID,
-			}
+			serverBoundKeepalive := new(models.KeepAlivePacket)
+			serverBoundKeepalive.PacketID = 0x10
+			serverBoundKeepalive.KeepAliveID = receivedKeepalive.KeepAliveID
 
-			err = client.WritePacket(&serverBoundKeepalive)
+			err = client.WritePacket(serverBoundKeepalive)
 			if err != nil {
 				panic(err)
 			}

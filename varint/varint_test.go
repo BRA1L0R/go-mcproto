@@ -38,13 +38,11 @@ func TestVarInt(t *testing.T) {
 	for _, w := range writeTest {
 		result, _, err := varint.DecodeReaderVarInt(readTest)
 		if err != nil {
-			t.Error(err)
-			t.FailNow()
+			t.Fatal(err)
 		}
 
 		if result != w {
-			t.Error("VarInt mismatch")
-			t.Fail()
+			t.Fatal("VarInt mismatch")
 		}
 	}
 
@@ -55,17 +53,36 @@ func TestVarInt(t *testing.T) {
 		varintDecoded, bytesRead, err := varint.DecodeReaderVarInt(buf)
 
 		if err != nil {
-			t.Error(err)
+			t.Fatal(err)
 		}
 
 		if varintDecoded != i {
-			t.Error("varint mismatch, encoded:", i, "decoded:", varintDecoded)
-			t.FailNow()
+			t.Fatal("varint mismatch, encoded:", i, "decoded:", varintDecoded)
 		}
 
 		if bytesRead != bytesWritten {
-			t.Error("bytes count mismatch")
-			t.FailNow()
+			t.Fatal("bytes count mismatch")
+		}
+	}
+}
+
+func TestVarLong(t *testing.T) {
+	for i := int64(-70263); i < 78912; i++ {
+		test, bytesWritten := varint.EncodeVarLong(i)
+
+		buf := bytes.NewBuffer(test)
+		varlongDecoded, bytesRead, err := varint.DecodeReaderVarLong(buf)
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if varlongDecoded != i {
+			t.Fatal("varlong mismatch, encoded:", i, "decoded:", varlongDecoded)
+		}
+
+		if bytesWritten != bytesRead {
+			t.Fatal("bytes count mismatch")
 		}
 	}
 }

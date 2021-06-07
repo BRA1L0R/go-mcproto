@@ -31,7 +31,7 @@ func (mc *McProto) receiveUncompressedPacket() (packet packets.MinecraftPacket, 
 		return packet, err
 	}
 
-	packetContent := make([]byte, packetLength-packetIdLen)
+	packetContent := make([]byte, packetLength-int32(packetIdLen))
 	_, err = io.ReadFull(mc.connection, packetContent)
 	if err != nil {
 		return packet, err
@@ -55,7 +55,7 @@ func (mc *McProto) receiveCompressedPacket() (packet packets.MinecraftPacket, er
 		return packet, err
 	}
 
-	remainingData := make([]byte, packetLength-dLenLen)
+	remainingData := make([]byte, packetLength-int32(dLenLen))
 	read, err := io.ReadFull(mc.connection, remainingData)
 	if err != nil {
 		return packet, err
@@ -64,7 +64,7 @@ func (mc *McProto) receiveCompressedPacket() (packet packets.MinecraftPacket, er
 	remainingDataBuffer := bytes.NewBuffer(remainingData)
 
 	if dataLength != 0 {
-		if int32(read) != (packetLength - dLenLen) {
+		if int32(read) != (packetLength - int32(dLenLen)) {
 			return packet, errors.New("mcproto: bytes read from buffer and bytes that needed to be fulfilled mismatch")
 		}
 

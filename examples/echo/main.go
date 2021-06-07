@@ -53,12 +53,15 @@ func main() {
 		panic(err)
 	}
 
-	botInfoMessage := ServerBoundChatMessage{
-		MinecraftPacket: packets.MinecraftPacket{PacketID: 0x03},
-		Message:         fmt.Sprintf("I'm running on %v, %v", runtime.GOOS, runtime.GOARCH),
-	}
+	// botInfoMessage := ServerBoundChatMessage{
+	// 	MinecraftPacket: packets.MinecraftPacket{PacketID: 0x03},
+	// 	Message:         fmt.Sprintf("I'm running on %v, %v", runtime.GOOS, runtime.GOARCH),
+	// }
+	botInfoMessage := new(ServerBoundChatMessage)
+	botInfoMessage.PacketID = 0x03
+	botInfoMessage.Message = fmt.Sprintf("I'm running on %v, %v", runtime.GOOS, runtime.GOARCH)
 
-	err = client.WritePacket(&botInfoMessage)
+	err = client.WritePacket(botInfoMessage)
 	if err != nil {
 		panic(err)
 	}
@@ -71,9 +74,9 @@ func main() {
 
 		switch packet.PacketID {
 		case 0x0E:
-			receivedChatMessage := ClientBoundChatMessage{MinecraftPacket: packet}
-
-			err := receivedChatMessage.DeserializeData(&receivedChatMessage)
+			// receivedChatMessage := ClientBoundChatMessage{MinecraftPacket: packet}
+			receivedChatMessage := new(ClientBoundChatMessage)
+			err := packet.DeserializeData(receivedChatMessage)
 			if err != nil {
 				panic(err)
 			}
@@ -108,9 +111,9 @@ func main() {
 				}
 			}
 		case 0x1F:
-			receivedKeepalive := models.KeepAlivePacket{MinecraftPacket: packet}
-
-			err := receivedKeepalive.DeserializeData(&receivedKeepalive)
+			// receivedKeepalive := models.KeepAlivePacket{MinecraftPacket: packet}
+			receivedKeepalive := new(models.KeepAlivePacket)
+			err := packet.DeserializeData(receivedKeepalive)
 			if err != nil {
 				panic(err)
 			}

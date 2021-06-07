@@ -36,8 +36,8 @@ func (p *MinecraftPacket) Serialize(compressionTreshold int32) ([]byte, error) {
 func (p *MinecraftPacket) serializeUncompressedPacket() ([]byte, error) {
 	encodedPacketId, pIdLength := varint.EncodeVarInt(p.PacketID)
 
-	length := pIdLength + int32(p.Data.Len())
-	encodedLength, _ := varint.EncodeVarInt(length)
+	length := pIdLength + p.Data.Len()
+	encodedLength, _ := varint.EncodeVarInt(int32(length))
 
 	dataBuffer := new(bytes.Buffer)
 	dataBuffer.Write(encodedLength)
@@ -77,7 +77,7 @@ func (p *MinecraftPacket) serializeCompressedPacket(compressionTreshold int32) (
 func (p *MinecraftPacket) serializeWithoutCompression(dataSize int32, packetBuffer *bytes.Buffer) error {
 	packetID, packetIDSize := varint.EncodeVarInt(p.PacketID)
 	dataLength, dataLengthSize := varint.EncodeVarInt(0) // data length must be 0 in uncompressed packets
-	packetLength, _ := varint.EncodeVarInt(packetIDSize + dataLengthSize + dataSize)
+	packetLength, _ := varint.EncodeVarInt(int32(packetIDSize) + int32(dataLengthSize) + dataSize)
 
 	packetBuffer.Write(packetLength)
 	packetBuffer.Write(dataLength)
@@ -94,7 +94,7 @@ func (p *MinecraftPacket) serializeWithoutCompression(dataSize int32, packetBuff
 // serialization with the compressed format but compressed
 func (p *MinecraftPacket) serializeWithCompression(dataSize int32, packetBuffer *bytes.Buffer) error {
 	packetID, packetIdSize := varint.EncodeVarInt(p.PacketID)
-	dataLength, dataLengthSize := varint.EncodeVarInt(packetIdSize + dataSize)
+	dataLength, dataLengthSize := varint.EncodeVarInt(int32(packetIdSize) + dataSize)
 
 	compressedBuf := new(bytes.Buffer)
 	writer := zlib.NewWriter(compressedBuf)
@@ -120,7 +120,7 @@ func (p *MinecraftPacket) serializeWithCompression(dataSize int32, packetBuffer 
 
 	// Packet length, in compressed packets, is the data remaining
 	// to the end of the packet, not the length of the uncompressed data itself
-	packetLength, _ := varint.EncodeVarInt(dataLengthSize + int32(compressedBuf.Len()))
+	packetLength, _ := varint.EncodeVarInt(int32(dataLengthSize + compressedBuf.Len()))
 
 	packetBuffer.Write(packetLength)
 	packetBuffer.Write(dataLength)

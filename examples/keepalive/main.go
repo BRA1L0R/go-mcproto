@@ -41,17 +41,12 @@ func main() {
 		}
 
 		if packet.PacketID == 0x1F {
-			receivedKeepalive := models.KeepAlivePacket{MinecraftPacket: packet}
-
-			err := receivedKeepalive.DeserializeData(&receivedKeepalive)
+			receivedKeepalive := new(models.KeepAlivePacket)
+			err := packet.DeserializeData(receivedKeepalive)
 			if err != nil {
 				panic(err)
 			}
 
-			// serverBoundKeepalive := models.KeepAlivePacket{
-			// 	CompressedPacket: packets.NewCompressedPacket(0x10),
-			// 	KeepAliveID:      receivedKeepalive.KeepAliveID,
-			// }
 			serverBoundKeepalive := new(models.KeepAlivePacket)
 			serverBoundKeepalive.KeepAliveID = receivedKeepalive.KeepAliveID
 			serverBoundKeepalive.PacketID = 0x10

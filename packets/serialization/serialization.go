@@ -25,6 +25,8 @@ func SerializeFields(t reflect.Value, databuf *bytes.Buffer) error {
 		switch typeField.Tag.Get("mc") {
 		case "varint":
 			err = types.SerializeVarInt(field, databuf)
+		case "varlong":
+			err = types.SerializeVarLong(field, databuf)
 		case "string":
 			err = types.SerializeString(field, databuf)
 		case "inherit":

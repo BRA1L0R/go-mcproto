@@ -49,22 +49,22 @@ func TestFullSerialization(t *testing.T) {
 
 	type TestStruct struct {
 		VarInt       int32       `mc:"varint"`
+		VarLong      int64       `mc:"varlong"`
 		VarString    string      `mc:"string"`
 		InheritValue int64       `mc:"inherit"`
 		Ignore       interface{} `mc:"ignore" len:"5"`
 		Byte         byte        `mc:"inherit"`
 		Nbt          NbtStruct   `mc:"nbt"`
-		VarIntArr    []int32     `mc:"varint"`
 		Bytes        []byte      `mc:"bytes"`
 	}
 
 	testStruct := TestStruct{
 		VarInt:       10,
+		VarLong:      -2147483648,
 		VarString:    "test",
 		InheritValue: -32392839992839239,
 		Byte:         0xFA,
 		Nbt:          NbtStruct{Test1: "nbt_test", Test2: -1234},
-		VarIntArr:    []int32{34, 12, 10, 56},
 		Bytes:        []byte{0x1, 0x2, 0x3, 0x4},
 	}
 
@@ -83,6 +83,15 @@ func TestFullSerialization(t *testing.T) {
 
 	if varintDecoded != testStruct.VarInt {
 		t.Fatal("VarInt mismatch")
+	}
+
+	varlongDecoded, _, err := varint.DecodeReaderVarLong(testBuffer)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if varlongDecoded != testStruct.VarLong {
+		t.Fatal("VarLong mismatch")
 	}
 
 	// VarString testing
@@ -153,18 +162,6 @@ func TestFullSerialization(t *testing.T) {
 
 	if decodedNbt.Test1 != testStruct.Nbt.Test1 || decodedNbt.Test2 != testStruct.Nbt.Test2 {
 		t.Fatal("NBT mismatch")
-	}
-
-	// VarIntArr testing
-	for _, v := range testStruct.VarIntArr {
-		decodedVarint, _, err := varint.DecodeReaderVarInt(testBuffer)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		if v != decodedVarint {
-			t.Fatal("VarInt array element mismatch")
-		}
 	}
 
 	// Bytes

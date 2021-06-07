@@ -49,18 +49,16 @@ func main() {
 
 		switch packet.PacketID { // Update Health
 		case 0x49:
-			healthPacket := UpdateHealth{MinecraftPacket: packet}
-
-			err := healthPacket.DeserializeData(&healthPacket)
+			healthPacket := new(UpdateHealth)
+			err := packet.DeserializeData(healthPacket)
 			if err != nil {
 				panic(err)
 			}
 
 			fmt.Printf("Health Update: %vH %vF\n", healthPacket.Health, healthPacket.Food)
 		case 0x1F:
-			receivedKeepalive := models.KeepAlivePacket{MinecraftPacket: packet}
-
-			err := receivedKeepalive.DeserializeData(&receivedKeepalive)
+			receivedKeepalive := new(models.KeepAlivePacket)
+			err := packet.DeserializeData(receivedKeepalive)
 			if err != nil {
 				panic(err)
 			}

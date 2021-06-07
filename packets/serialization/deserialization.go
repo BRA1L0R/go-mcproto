@@ -24,7 +24,9 @@ func DeserializeFields(t reflect.Value, databuf *bytes.Buffer) error {
 
 		switch typeField.Tag.Get("mc") {
 		case "varint":
-			err = types.DeserializeVarint(field, lengthTag, databuf)
+			err = types.DeserializeVarInt(field, databuf)
+		case "varlong":
+			err = types.DeserializeVarLong(field, databuf)
 		case "string":
 			err = types.DeserializeString(field, databuf)
 		case "inherit":

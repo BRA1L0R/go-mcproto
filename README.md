@@ -53,7 +53,7 @@ packets.MinecraftPackets will add the rest of the fields which are needed for a 
 
 ChatMessage will also inherit from packets.MinecraftPackets the methods for the serialization of the fields into Data and the final serialization which returns the byte slice that can be sent over the connection using `client.WritePacket`
 
-### Array Length
+### Arrays
 
 Sometimes you might encounter a packet which sends before an array the length of it. Fortunately you can still deserialize the packet with no extra steps doing something like this:
 
@@ -85,21 +85,92 @@ type PlayerInfo struct {
 }
 ```
 
+### All the available tags
+
+This library already integrates all the possible types to define all possible data types, including NBTs.
+
+Here's a list of all the available tags:
+
+- `mc:"inherit"`: this tag covers all integers, complexes, floats, and the `byte` type. It inherits the length from the type defined in the struct. See the examples above. Please note: the minecraft protocol is effectively big-endian, for the exception of varints, which are defined using another tag.
+- `mc:"varint"` and `mc:"varlong"`: Used to encode varints and varlongs respectively. Requires a int32 and int64 (respectively) as the field types
+- `mc:"string"`: requires a string field type in the struct, it encodes its length using a varint end then the string is encoded using the UTF-8.
+- `mc:"bytes" len:"X"`: Reads X bytes from the buffer and puts it in a byte slice, which must be the type of the struct field this tag is assigned to. _X is only required for deserialization in this case_
+- `mc:"ignore" len:"X"`: Ignores X bytes from the buffer. Which means that it discards X bytes from the data buffer in case of deserialization or writes X null bytes in the data buffer in case of serialization
+- `mc:"nbt"`: Encodes or decodes an nbt struct. For more information check https://github.com/Tnze/go-mc/tree/master/nbt
+- `mc:"array" len:"X"`: Can be used to array every previous tags. Check [this section](#arrays)
+
 ## Sending a packet
 
 Once you have defined a packet you want to send, you will have to call `client.WritePacket()` to serialize the data and send it over the connection.
 
 ```go
 packet := new(MyPacket)
-packet.PacketID = 0x00 // you can look up the packet ids on wiki.vg
+packet.PacketID = 0x00
+// you can look up the packet ids on wiki.vg
 // all the other fields
 
 client.WritePacket(packet)
 ```
 
+### Sending a raw packet
+
+If you already put data into the Data buffer by yourself, without using the included serialized, then you can send the packet using the `WriteRawPacket` method.
+
 ## Receiving a packet
 
-TODO
+Receiving a packet is as simple as calling `client.ReceivePacket`. The server will receive the packet length and wait the server until all bytes are fulfilled. If it encounters an error it will return it, but will keep receiving packets as all the packet length is already consumed from the connection.
+
+`client.ReceivePacket` will return a MinecraftPacket, which can be deserialized using the DeserializeData method, that as a parameters takes a pointer to a struct with the mc struct tags, as explained [here](#defining-a-packet)
+
+```go
+packet, err := client.ReceivePacket()
+if err != nil {
+  // an error has been encountered during the reception of the packet
+  panic(err)
+}
+
+keepalive := new(models.KeepAlivePacket)
+err := packet.DeserializeData(keepalive)
+if err != nil {
+  panic(err)
+}
+
+fmt.Println(keepalive.KeepAliveID) // 123456
+```
+
+### Variable packet content
+
+There are multipe cases in the minecraft protocol where the packet content is variable depending on certain values inside the struct. **This is no problem for the library**, as you can easily receive a part of the packet (by defining only the fixed fields in the struct) and then later on continue the deserialization by calling `DeserializeData` on a different struct.
+
+Here's a practical demonstration:
+
+```go
+type FixedContent struct {
+  packets.MinecraftPacket
+
+  PacketType int32 `mc:"varint"`
+}
+
+type SomeOtherContent struct {
+  packets.MinecraftPacket
+
+  Data string `mc:"string"`
+}
+
+packet, _ := client.ReceivePacket()
+// from now on i'm gonna avoid doing error handling in the examples for practical reasons
+// but you MUST do it.
+
+fixedPacket := new(FixedContent)
+packet.DeserializeData(fixedPacket)
+
+if fixedPacket.PacketType == 0x05 {
+  someOtherContent := new(SomeOtherContent)
+  packet.DeserializeData(someOtherContent)
+} else {
+  panic("Unknown packet type!")
+}
+```
 
 ## Example ✨
 
@@ -118,7 +189,7 @@ func main() {
     Host: "my.minecraftserver.com",
     Port: 25565,
     ProtocolVersion: 754, // 1.16.5
-    Name: "QuickStart",
+    Name: "ExampleBot",
   }
 
   client.Initialize()
@@ -130,9 +201,8 @@ func main() {
     }
 
     if packet.PacketID == 0x1F { // clientbound keepalive packetid
-      receivedKeepalive := models.KeepAlivePacket{MinecraftPacket: packet}
-
-      err := receivedKeepalive.DeserializeData(&receivedKeepalive)
+      receivedKeepalive := new(models.KeepAlivePacket)
+      err := packet.DeserializeData(receivedKeepalive)
       if err != nil {
         panic(err)
       }

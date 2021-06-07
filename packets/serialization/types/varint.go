@@ -8,56 +8,47 @@ import (
 )
 
 func SerializeVarInt(field reflect.Value, databuf *bytes.Buffer) error {
-	if field.Kind() == reflect.Slice {
-		fieldArr, ok := field.Interface().([]int32)
-		if !ok {
-			return ErrIncorrectFieldType
-		}
-
-		fieldArrSize := len(fieldArr)
-
-		for i := 0; i < fieldArrSize; i++ {
-			encoded, _ := varint.EncodeVarInt(fieldArr[i])
-			databuf.Write(encoded)
-		}
-	} else {
-		value, ok := field.Interface().(int32)
-		if !ok {
-			return ErrIncorrectFieldType
-		}
-
-		encodedData, _ := varint.EncodeVarInt(value)
-		databuf.Write(encodedData)
+	value, ok := field.Interface().(int32)
+	if !ok {
+		return ErrIncorrectFieldType
 	}
+
+	encodedData, _ := varint.EncodeVarInt(value)
+	databuf.Write(encodedData)
 
 	return nil
 }
 
-func DeserializeVarint(field reflect.Value, length int, databuf *bytes.Buffer) error {
-	if length >= 0 {
-		arrayField, ok := field.Addr().Interface().(*[]int32)
-		if !ok {
-			return ErrIncorrectFieldType
-		}
-
-		*arrayField = make([]int32, length)
-
-		for i := 0; i < length; i++ {
-			decodedVarint, _, err := varint.DecodeReaderVarInt(databuf)
-			if err != nil {
-				return err
-			}
-
-			(*arrayField)[i] = decodedVarint
-		}
-	} else {
-		decodedVal, _, err := varint.DecodeReaderVarInt(databuf)
-		if err != nil {
-			return err
-		}
-
-		field.SetInt(int64(decodedVal))
+func SerializeVarLong(field reflect.Value, databuf *bytes.Buffer) error {
+	value, ok := field.Interface().(int64)
+	if !ok {
+		return ErrIncorrectFieldType
 	}
+
+	encodedData, _ := varint.EncodeVarLong(value)
+	databuf.Write(encodedData)
+
+	return nil
+}
+
+func DeserializeVarInt(field reflect.Value, databuf *bytes.Buffer) error {
+	decodedVal, _, err := varint.DecodeReaderVarInt(databuf)
+	if err != nil {
+		return err
+	}
+
+	field.SetInt(int64(decodedVal))
+
+	return nil
+}
+
+func DeserializeVarLong(field reflect.Value, databuf *bytes.Buffer) error {
+	decodedVal, _, err := varint.DecodeReaderVarLong(databuf)
+	if err != nil {
+		return err
+	}
+
+	field.SetInt(decodedVal)
 
 	return nil
 }
