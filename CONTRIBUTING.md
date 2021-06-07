@@ -61,3 +61,4 @@ When you report a bug it is important that you follow these simple rules! This w
 ![image](https://i.ibb.co/1bDbN7P/image.png)
 
 9) Write the title and a comment and finally click the green button to create the pull request
+![image](https://i.ibb.co/wCQppy7/image.png)
