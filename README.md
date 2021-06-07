@@ -6,12 +6,12 @@
 </div>
 
 <div align="right">
-<h6> illustration by <a href="github.com/talentlessguy" >@talentlessguy </a></h6>
+<h6> illustration by <a href="https://github.com/talentlessguy" >@talentlessguy</a></h6>
 </div>
 
 ## Install
 
-You'll need to have at least Go 1.16.x+ to use this library
+Go 1.16.x is required in order to use this library
 
 ```sh
 go get github.com/BRA1L0R/go-mcproto
@@ -174,7 +174,7 @@ if fixedPacket.PacketType == 0x05 {
 
 ## Example ✨
 
-This example initializes the connection between the client and the server, thus switching to the Play state, and listens for keepalive packets to which it responds
+This example initializes the connection between the client and a server, thus switching to the Play state, and listens for keepalive packets to which it responds
 
 ```go
 package main
