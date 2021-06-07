@@ -17,7 +17,7 @@ var (
 func main() {
 	flag.Parse()
 
-	client := mcproto.McProto{
+	client := mcproto.Client{
 		Host:            *host,
 		Port:            uint16(*port),
 		ProtocolVersion: 754, // 1.16.5

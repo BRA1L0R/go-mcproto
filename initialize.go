@@ -9,7 +9,7 @@ import (
 	"github.com/BRA1L0R/go-mcproto/packets/models"
 )
 
-func (mc *McProto) Connect() error {
+func (mc *Client) Connect() error {
 	conn, err := net.Dial("tcp", fmt.Sprintf("%s:%v", mc.Host, mc.Port))
 	mc.connection = conn
 
@@ -20,7 +20,7 @@ func (mc *McProto) Connect() error {
 // the handshake packet and the login packet
 //
 // Server Host, Port and Username are defined in the McProto object
-func (mc *McProto) Initialize() error {
+func (mc *Client) Initialize() error {
 	if err := mc.Connect(); err != nil {
 		return err
 	}
@@ -81,7 +81,7 @@ func (mc *McProto) Initialize() error {
 				return errors.New("mcproto: server sent a set compression packet with a negative treshold")
 			}
 
-			mc.compressionTreshold = setCompression.Treshold
+			mc.CompressionTreshold = setCompression.Treshold
 		case 0x02: // login success
 			loginSuccess := models.LoginStartPacket{MinecraftPacket: p}
 			err := loginSuccess.DeserializeData(&loginSuccess)

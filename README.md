@@ -20,7 +20,7 @@ go get github.com/BRA1L0R/go-mcproto
 ## Opening a connection
 
 ```go
-client := mcproto.McProto{Host: "IP or Hostname", Port: 25565, Name: "GoBot", ProtocolVersion: 754}
+client := mcproto.Client{Host: "IP or Hostname", Port: 25565, Name: "GoBot", ProtocolVersion: 754}
 ```
 
 Before opening a connection to a server, you'll have to specified some vital information such as the host, the port,
@@ -185,7 +185,7 @@ import (
 )
 
 func main() {
-  client := mcproto.McProto{
+  client := mcproto.Client{
     Host: "my.minecraftserver.com",
     Port: 25565,
     ProtocolVersion: 754, // 1.16.5

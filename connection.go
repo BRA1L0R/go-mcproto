@@ -15,7 +15,7 @@ type MinecraftPacket interface {
 }
 
 // WritePacket calls SerializeData and then calls WriteRawPacket
-func (mc *McProto) WritePacket(packet MinecraftPacket) error {
+func (mc *Client) WritePacket(packet MinecraftPacket) error {
 	if err := packet.SerializeData(packet); err != nil {
 		return err
 	}
@@ -25,8 +25,8 @@ func (mc *McProto) WritePacket(packet MinecraftPacket) error {
 
 // WriteRawPacket takes a packet with PacketID and Data already filled out, and serializes
 // it to a byte slice, which is subsequently written to the underlying connection
-func (mc *McProto) WriteRawPacket(packet MinecraftPacket) error {
-	serialized, err := packet.Serialize(mc.compressionTreshold)
+func (mc *Client) WriteRawPacket(packet MinecraftPacket) error {
+	serialized, err := packet.Serialize(mc.CompressionTreshold)
 	if err != nil {
 		return err
 	}

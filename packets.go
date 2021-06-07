@@ -10,17 +10,17 @@ import (
 	"github.com/BRA1L0R/go-mcproto/varint"
 )
 
-func (mc *McProto) ReceivePacket() (packets.MinecraftPacket, error) {
+func (mc *Client) ReceivePacket() (packets.MinecraftPacket, error) {
 	// as wiki.vg, negative or zero values for compression will disable compression,
 	// meaning the format will remain uncompressed
-	if mc.compressionTreshold <= 0 {
+	if mc.CompressionTreshold <= 0 {
 		return mc.receiveUncompressedPacket()
 	} else {
 		return mc.receiveCompressedPacket()
 	}
 }
 
-func (mc *McProto) receiveUncompressedPacket() (packet packets.MinecraftPacket, err error) {
+func (mc *Client) receiveUncompressedPacket() (packet packets.MinecraftPacket, err error) {
 	packetLength, _, err := varint.DecodeReaderVarInt(mc.connection)
 	if err != nil {
 		return packet, err
@@ -43,7 +43,7 @@ func (mc *McProto) receiveUncompressedPacket() (packet packets.MinecraftPacket, 
 	return
 }
 
-func (mc *McProto) receiveCompressedPacket() (packet packets.MinecraftPacket, err error) {
+func (mc *Client) receiveCompressedPacket() (packet packets.MinecraftPacket, err error) {
 	packetLength, _, err := varint.DecodeReaderVarInt(mc.connection)
 	if err != nil {
 		return packet, err
