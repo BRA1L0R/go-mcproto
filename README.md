@@ -23,15 +23,15 @@ go get github.com/BRA1L0R/go-mcproto
 client := mcproto.Client{Host: "IP or Hostname", Port: 25565, Name: "GoBot", ProtocolVersion: 754}
 ```
 
-Before opening a connection to a server, you'll have to specified some vital information such as the host, the port,
+Before opening a connection to a server, you'll have to specify some vital information such as the host, the port,
 the name of your bot (which will login in offline mode) and the protocol version, which will have to match the server one,
 unless the server uses some kind of backwards compatibility plugin such as ViaVersion.
 
-In this case 754 is the protocol version for Minecraft 1.16.5, but you can find all the versions [here](https://wiki.vg/Protocol_version_numbers)
+In this case 754 is the protocol version for Minecraft 1.16.5 but you can find all the versions [here](https://wiki.vg/Protocol_version_numbers)
 
 Once you define client, you can either use the already implemented handshake method (`client.Initialize`) or you can manually open the connection using `client.Connect`
 
-`client.Initialize` only supports offline mode (unauthenticated SP) at the moment, but I will soon implement online mode as well.
+`client.Initialize` only supports offline mode (unauthenticated SP) at the moment but I will soon implement online mode as well.
 
 ## Defining a packet
 
@@ -51,11 +51,11 @@ type ChatMessage struct {
 
 packets.MinecraftPackets will add the rest of the fields which are needed for a packet to be conformant to the standard format, compressed or not
 
-ChatMessage will also inherit from packets.MinecraftPackets the methods for the serialization of the fields into Data and the final serialization which returns the byte slice that can be sent over the connection using `client.WritePacket`
+ChatMessage will also inherit from packets.MinecraftPackets the methods for serialization of the fields into Data and the final serialization which returns the byte slice that can be sent over a connection using `client.WritePacket`
 
 ### Arrays
 
-Sometimes you might encounter a packet which sends before an array the length of it. Fortunately you can still deserialize the packet with no extra steps doing something like this:
+Sometimes you might encounter a packet which sends before an array the length of it. Fortunately you can still deserialize the packet with no extra steps thanks to the len tag:
 
 ```go
 type Biome struct {
@@ -74,7 +74,7 @@ The Biome struct can contain as much fields as you like, as the minecraft protoc
 
 ### Field Dependency
 
-In some cases, a field is present only if the previous one is true (in the case of a boolean). You can still manage to do this with only struct tags:
+In some cases, a field is present only if the previous one is true (in the case of a boolean). You can still manage to do this with only struct tags by using the `depends_on` tag:
 
 ```go
 type PlayerInfo struct {
@@ -101,7 +101,7 @@ Here's a list of all the available tags:
 
 ## Sending a packet
 
-Once you have defined a packet you want to send, you will have to call `client.WritePacket()` to serialize the data and send it over the connection.
+Once you have defined a packet you want to send, you will have to call `client.WritePacket()` to serialize the data and send it over a connection.
 
 ```go
 packet := new(MyPacket)
@@ -118,9 +118,9 @@ If you already put data into the Data buffer by yourself, without using the incl
 
 ## Receiving a packet
 
-Receiving a packet is as simple as calling `client.ReceivePacket`. The server will receive the packet length and wait the server until all bytes are fulfilled. If it encounters an error it will return it, but will keep receiving packets as all the packet length is already consumed from the connection.
+Receiving a packet is done by calling `client.ReceivePacket`. The server will receive the packet length and wait the server until all bytes are fulfilled. If it encounters an error it will return it, but it will keep receiving packets as all the packet length is already consumed from the connection.
 
-`client.ReceivePacket` will return a MinecraftPacket, which can be deserialized using the DeserializeData method, that as a parameters takes a pointer to a struct with the mc struct tags, as explained [here](#defining-a-packet)
+`client.ReceivePacket` will return a MinecraftPacket, which can be deserialized using the DeserializeData method. It'a called by passing a pointer to a struct containing mc struct tags, as explained [here](#defining-a-packet)
 
 ```go
 packet, err := client.ReceivePacket()
