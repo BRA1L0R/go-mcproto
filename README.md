@@ -11,7 +11,7 @@
 
 ## Install
 
-Go 1.16.x is required in order to use this library
+Go 1.16.x is required to use this library
 
 ```sh
 go get github.com/BRA1L0R/go-mcproto
@@ -25,9 +25,9 @@ client := mcproto.Client{Host: "IP or Hostname", Port: 25565, Name: "GoBot", Pro
 
 Before opening a connection to a server, you'll have to specify some vital information such as the host, the port,
 the name of your bot (which will login in offline mode) and the protocol version, which will have to match the server one,
-unless the server uses some kind of backwards compatibility plugin such as ViaVersion.
+unless the server uses some kind of backward compatibility plugin such as ViaVersion.
 
-In this case 754 is the protocol version for Minecraft 1.16.5 but you can find all the versions [here](https://wiki.vg/Protocol_version_numbers)
+In this case, 754 is the protocol version for Minecraft 1.16.5 but you can find all the versions [here](https://wiki.vg/Protocol_version_numbers)
 
 Once you define client, you can either use the already implemented handshake method (`client.Initialize`) or you can manually open the connection using `client.Connect`
 
@@ -35,7 +35,7 @@ Once you define client, you can either use the already implemented handshake met
 
 ## Defining a packet
 
-Not all packets are implemented in the library, in fact, there are only the ones that will get you past the login state.
+Not all packets are implemented in the library there are only the ones that will get you past the login state.
 
 Fortunately, defining a packet with go-mcproto is as easy as declaring a struct. Here's a quick example
 
@@ -55,7 +55,7 @@ ChatMessage will also inherit from packets.MinecraftPackets the methods for seri
 
 ### Arrays
 
-Sometimes you might encounter a packet which sends before an array the length of it. Fortunately you can still deserialize the packet with no extra steps thanks to the len tag:
+Sometimes you might encounter a packet that sends before an array the length of it. Fortunately, you can still deserialize the packet with no extra steps thanks to the len tag:
 
 ```go
 type Biome struct {
@@ -70,7 +70,7 @@ type ChunkData struct {
 }
 ```
 
-The Biome struct can contain as much fields as you like, as the minecraft protocol has a lot of cases where there are multi-fielded arrays
+The Biome struct can contain as many fields as you like, as the minecraft protocol has a lot of cases where there are multi-fielded arrays
 
 ### Field Dependency
 
@@ -91,11 +91,11 @@ This library already integrates all the possible types to define all possible da
 
 Here's a list of all the available tags:
 
-- `mc:"inherit"`: this tag covers all integers, complexes, floats, and the `byte` type. It inherits the length from the type defined in the struct. See the examples above. Please note: the minecraft protocol is effectively big-endian, for the exception of varints, which are defined using another tag.
+- `mc:"inherit"`: this tag covers all integers, complexes, floats, and the `byte` type. It inherits the length from the type defined in the struct. See the examples above. Please note: the Minecraft protocol is effectively big-endian, except varints, which are defined using another tag.
 - `mc:"varint"` and `mc:"varlong"`: Used to encode varints and varlongs respectively. Requires a int32 and int64 (respectively) as the field types
 - `mc:"string"`: requires a string field type in the struct, it encodes its length using a varint end then the string is encoded using the UTF-8.
 - `mc:"bytes" len:"X"`: Reads X bytes from the buffer and puts it in a byte slice, which must be the type of the struct field this tag is assigned to. _X is only required for deserialization in this case_
-- `mc:"ignore" len:"X"`: Ignores X bytes from the buffer. Which means that it discards X bytes from the data buffer in case of deserialization or writes X null bytes in the data buffer in case of serialization
+- `mc:"ignore" len:"X"`: Ignores X bytes from the buffer. This means that it discards X bytes from the data buffer in case of deserialization or writes X null bytes in the data buffer in case of serialization
 - `mc:"nbt"`: Encodes or decodes an nbt struct. For more information check https://github.com/Tnze/go-mc/tree/master/nbt
 - `mc:"array" len:"X"`: Can be used to array every previous tags. Check [this section](#arrays)
 
@@ -118,7 +118,7 @@ If you already put data into the Data buffer by yourself, without using the incl
 
 ## Receiving a packet
 
-Receiving a packet is done by calling `client.ReceivePacket`. The server will receive the packet length and wait the server until all bytes are fulfilled. If it encounters an error it will return it, but it will keep receiving packets as all the packet length is already consumed from the connection.
+Receiving a packet is done by calling `client.ReceivePacket`. The server will receive the packet length and wait for the server until all bytes are fulfilled. If it encounters an error it will return it, but it will keep receiving packets as all the packet length is already consumed from the connection.
 
 `client.ReceivePacket` will return a MinecraftPacket, which can be deserialized using the DeserializeData method. It'a called by passing a pointer to a struct containing mc struct tags, as explained [here](#defining-a-packet)
 
@@ -140,7 +140,7 @@ fmt.Println(keepalive.KeepAliveID) // 123456
 
 ### Variable packet content
 
-There are multipe cases in the minecraft protocol where the packet content is variable depending on certain values inside the struct. **This is no problem for the library**, as you can easily receive a part of the packet (by defining only the fixed fields in the struct) and then later on continue the deserialization by calling `DeserializeData` on a different struct.
+There are multiple cases in the Minecraft protocol where the packet content is variable depending on certain values inside the struct. **This is no problem for the library**, as you can easily receive a part of the packet (by defining only the fixed fields in the struct) and then, later on, continue the deserialization by calling `DeserializeData` on a different struct.
 
 Here's a practical demonstration:
 
@@ -158,7 +158,7 @@ type SomeOtherContent struct {
 }
 
 packet, _ := client.ReceivePacket()
-// from now on i'm gonna avoid doing error handling in the examples for practical reasons
+// from now on I'm gonna avoid doing error handling in the examples for practical reasons
 // but you MUST do it.
 
 fixedPacket := new(FixedContent)
