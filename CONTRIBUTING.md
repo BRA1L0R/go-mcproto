@@ -14,7 +14,11 @@ You can contribute by:
 3. You must have golangcgi-lint.<br>
 4. The code must have no warnings caused by golangcgi-lint and no errors in general.<br>
 5. Don't create pull requests that have low effort, like modifying the README.md.<br> 
-6. It is good manner to run <code>./init-hooks.sh</code> before comitting<br>
+
+# **How to setup the repository**
+
+1. Run <code>git clone https://github.com/BRA1L0R/go-mcproto</code>
+2. Run <code>./init-hooks.sh</code> only **ONCE** after cloning the repository
   
 # **Bug reports**
 When you report a bug it is important that you follow these simple rules! This will help me fix the bug faster!<br>
