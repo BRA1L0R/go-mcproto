@@ -34,3 +34,8 @@ func (mc *Client) WriteRawPacket(packet MinecraftPacket) error {
 	_, err = mc.connection.Write(serialized)
 	return err
 }
+
+// CloseConnection closes the underlying connection making further comunication impossible
+func (mc *Client) CloseConnection() error {
+	return mc.connection.Close()
+}

@@ -6,6 +6,6 @@ type LoginSuccessPacket struct {
 	// *packets.CompressedPacket
 	packets.MinecraftPacket
 
-	UUID     string `mc:"ignore" len:"16"`
+	UUID     []byte `mc:"bytes" len:"16"`
 	Username string `mc:"string"`
 }

@@ -31,14 +31,17 @@ func (mc *Client) receiveUncompressedPacket() (packet packets.MinecraftPacket, e
 		return packet, err
 	}
 
-	packetContent := make([]byte, packetLength-int32(packetIdLen))
-	_, err = io.ReadFull(mc.connection, packetContent)
-	if err != nil {
-		return packet, err
-	}
-
 	packet.PacketID = packetId
-	packet.Data = bytes.NewBuffer(packetContent)
+
+	if packetLength > int32(packetIdLen) {
+		packetContent := make([]byte, packetLength-int32(packetIdLen))
+		_, err = io.ReadFull(mc.connection, packetContent)
+		if err != nil {
+			return packet, err
+		}
+
+		packet.Data = bytes.NewBuffer(packetContent)
+	}
 
 	return
 }
