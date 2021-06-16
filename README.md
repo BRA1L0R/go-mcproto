@@ -20,14 +20,18 @@ go get github.com/BRA1L0R/go-mcproto
 ## Opening a connection
 
 ```go
-client := mcproto.Client{Host: "IP or Hostname", Port: 25565, Name: "GoBot", ProtocolVersion: 754}
+// Define the client
+client := mcproto.Client{}
+
+// Use the Initialize method which connects to the server and sends Login information
+client.Initialize("127.0.0.1", 25565, 755, "GolangBot")
 ```
 
 Before opening a connection to a server, you'll have to specify some vital information such as the host, the port,
 the name of your bot (which will login in offline mode) and the protocol version, which will have to match the server one,
 unless the server uses some kind of backward compatibility plugin such as ViaVersion.
 
-In this case, 754 is the protocol version for Minecraft 1.16.5 but you can find all the versions [here](https://wiki.vg/Protocol_version_numbers)
+In this case, 755 is the protocol version for Minecraft 1.17 but you can find all the versions [here](https://wiki.vg/Protocol_version_numbers)
 
 Once you define client, you can either use the already implemented handshake method (`client.Initialize`) or you can manually open the connection using `client.Connect`
 
