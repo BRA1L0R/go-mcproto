@@ -57,7 +57,7 @@ func HandleClient(client *mcproto.Client) {
 		return
 	}
 
-	fmt.Printf("New ping from %s!\n", client.Host)
+	fmt.Printf("New ping from %s!\n", client.GetRemoteAddress().IP)
 
 	for {
 		statusPacket, err := client.ReceivePacket()
@@ -121,7 +121,7 @@ func main() {
 	}
 
 	for {
-		client, err := mcproto.FromListener(ln)
+		client, err := mcproto.FromListener(ln.(*net.TCPListener))
 		if err != nil {
 			fmt.Println(err)
 			continue

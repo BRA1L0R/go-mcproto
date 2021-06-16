@@ -185,14 +185,8 @@ import (
 )
 
 func main() {
-  client := mcproto.Client{
-    Host: "my.minecraftserver.com",
-    Port: 25565,
-    ProtocolVersion: 754, // 1.16.5
-    Name: "ExampleBot",
-  }
-
-  client.Initialize()
+  client := mcproto.Client{}
+	client.Initialize("127.0.0.1", 25565, 755, "GolangBot")
 
   for {
     packet, err := client.ReceivePacket()

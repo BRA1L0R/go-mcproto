@@ -70,21 +70,16 @@ type SpawnPlayer struct {
 }
 
 var (
-	host = flag.String("host", "127.0.0.1", "Server host")
-	port = flag.Uint("port", 25565, "Server port")
+	host     = flag.String("host", "127.0.0.1", "Server host")
+	port     = flag.Uint("port", 25565, "Server port")
+	username = flag.String("username", "GolangKeepalive", "In-game username")
 )
 
 func main() {
 	flag.Parse()
 
-	client := mcproto.Client{
-		Host:            *host,
-		Port:            uint16(*port),
-		ProtocolVersion: 754, // 1.16.5
-		Name:            "FollowBot",
-	}
-
-	err := client.Initialize()
+	client := mcproto.Client{}
+	err := client.Initialize(*host, uint16(*port), 754, *username)
 	if err != nil {
 		panic(err)
 	}

@@ -9,9 +9,10 @@ import (
 	"github.com/BRA1L0R/go-mcproto/packets/models"
 )
 
-func (mc *Client) Connect() error {
-	conn, err := net.Dial("tcp", fmt.Sprintf("%s:%v", mc.Host, mc.Port))
-	mc.connection = conn
+func (mc *Client) Connect(host string, port uint16) error {
+	conn, err := net.Dial("tcp", fmt.Sprintf("%s:%v", host, port))
+
+	mc.connection = conn.(*net.TCPConn)
 
 	return err
 }
@@ -19,9 +20,12 @@ func (mc *Client) Connect() error {
 // Initializes the connection to the server by sending
 // the handshake packet and the login packet
 //
-// Server Host, Port and Username are defined in the McProto object
-func (mc *Client) Initialize() error {
-	if err := mc.Connect(); err != nil {
+// host is the server fqdn or ip address of the server, port is the uint16 port where the server is listening on
+//
+// username is the in-game username the client will send to the server during handshaking. Might differ from the actual
+// in-game username as the server sends a confirmation of it after the login state.
+func (mc *Client) Initialize(host string, port uint16, protocolVersion int32, username string) error {
+	if err := mc.Connect(host, port); err != nil {
 		return err
 	}
 
@@ -32,9 +36,9 @@ func (mc *Client) Initialize() error {
 	hp := models.HandshakePacket{
 		MinecraftPacket: packets.MinecraftPacket{PacketID: 0x00},
 
-		ProtocolVersion: mc.ProtocolVersion,
-		ServerAddress:   mc.Host,
-		ServerPort:      mc.Port,
+		ProtocolVersion: protocolVersion,
+		ServerAddress:   host,
+		ServerPort:      port,
 		NextState:       2,
 	}
 
@@ -46,7 +50,7 @@ func (mc *Client) Initialize() error {
 	loginPacket := models.LoginStartPacket{
 		MinecraftPacket: packets.MinecraftPacket{PacketID: 0x00},
 
-		Name: mc.Name,
+		Name: username,
 	}
 
 	err = mc.WritePacket(&loginPacket)
@@ -62,8 +66,8 @@ func (mc *Client) Initialize() error {
 
 		switch p.PacketID {
 		case 0x00: // disconnected
-			disconnectPacket := models.DisconnectPacket{MinecraftPacket: p}
-			if err := disconnectPacket.DeserializeData(&disconnectPacket); err != nil {
+			disconnectPacket := new(models.DisconnectPacket)
+			if err := p.DeserializeData(disconnectPacket); err != nil {
 				return err
 			}
 
@@ -71,8 +75,8 @@ func (mc *Client) Initialize() error {
 		case 0x01: // encryption request
 			return errors.New("mcproto: received an encryption request which means the server is in online mode. Online mode not currently supported")
 		case 0x03: // set compression
-			setCompression := models.SetCompressionPacket{MinecraftPacket: p}
-			err := setCompression.DeserializeData(&setCompression)
+			setCompression := new(models.SetCompressionPacket)
+			err := p.DeserializeData(setCompression)
 			if err != nil {
 				return err
 			}
@@ -83,8 +87,8 @@ func (mc *Client) Initialize() error {
 
 			mc.CompressionTreshold = setCompression.Treshold
 		case 0x02: // login success
-			loginSuccess := models.LoginStartPacket{MinecraftPacket: p}
-			err := loginSuccess.DeserializeData(&loginSuccess)
+			loginSuccess := new(models.LoginSuccessPacket)
+			err := p.DeserializeData(loginSuccess)
 
 			return err
 		}

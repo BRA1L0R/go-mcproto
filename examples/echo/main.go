@@ -34,21 +34,16 @@ type ChatMessage struct {
 }
 
 var (
-	host = flag.String("host", "127.0.0.1", "Server host")
-	port = flag.Uint("port", 25565, "Server port")
+	host     = flag.String("host", "127.0.0.1", "Server host")
+	port     = flag.Uint("port", 25565, "Server port")
+	username = flag.String("username", "GolangKeepalive", "In-game username")
 )
 
 func main() {
 	flag.Parse()
 
-	client := mcproto.Client{
-		Host:            *host,
-		Port:            uint16(*port),
-		ProtocolVersion: 754, // 1.16.5
-		Name:            "Echo_Bot",
-	}
-
-	err := client.Initialize()
+	client := mcproto.Client{}
+	err := client.Initialize(*host, uint16(*port), 754, *username)
 	if err != nil {
 		panic(err)
 	}
@@ -91,16 +86,12 @@ func main() {
 				user := chatMessage.With[0].Text
 				playerText := chatMessage.With[1].Text
 
-				if user == client.Name {
+				if user == *username {
 					continue
 				}
 
 				fmt.Printf("<%s> %s\n", user, playerText)
 
-				// chatMessage := ServerBoundChatMessage{
-				// 	CompressedPacket: packets.MinecraftPacket{PacketID: 0x03},
-				// 	Message:          playerText,
-				// }
 				chatMessage := new(ServerBoundChatMessage)
 				chatMessage.PacketID = 0x03
 				chatMessage.Message = playerText
