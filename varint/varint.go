@@ -38,30 +38,6 @@ func EncodeVarInt(inputValue int32) (varint []byte, n int) {
 	return buffer.Bytes(), n
 }
 
-func EncodeVarLong(inputValue int64) (varint []byte, n int) {
-	value := uint64(inputValue)
-
-	buffer := new(bytes.Buffer)
-
-	for {
-		temp := (byte)(value & 0b01111111)
-		value >>= 7
-
-		if value != 0 {
-			temp |= 0b10000000
-		}
-
-		buffer.WriteByte(temp)
-		n++
-
-		if value == 0 {
-			break
-		}
-	}
-
-	return buffer.Bytes(), n
-}
-
 // DecodeReaderVarInt takes an io.Reader as a parameter and returns in order:
 //
 // - the result varint
@@ -75,9 +51,9 @@ func DecodeReaderVarInt(reader io.Reader) (result int32, numRead int, err error)
 	read := make([]byte, 1)
 
 	for {
-		_, err := reader.Read(read)
+		_, err = io.ReadFull(reader, read)
 		if err != nil {
-			return result, numRead, err
+			return
 		}
 
 		readByte := read[0]
@@ -87,36 +63,8 @@ func DecodeReaderVarInt(reader io.Reader) (result int32, numRead int, err error)
 
 		numRead++
 		if numRead > 5 {
-			// panic("VarInt is too big >:/")
-			return 0, numRead, ErrVarIntTooBig
-		}
-
-		if (readByte & 0b10000000) == 0 {
-			break
-		}
-	}
-
-	return result, numRead, nil
-}
-
-func DecodeReaderVarLong(reader io.Reader) (result int64, numRead int, err error) {
-	read := make([]byte, 1)
-
-	for {
-		_, err := reader.Read(read)
-		if err != nil {
-			return result, numRead, err
-		}
-
-		readByte := read[0]
-
-		value := int64(readByte & 0b01111111)
-		result |= (value << (7 * numRead))
-
-		numRead++
-		if numRead > 10 {
-			// panic("VarInt is too big >:/")
-			return 0, numRead, ErrVarIntTooBig
+			err = ErrVarIntTooBig
+			return
 		}
 
 		if (readByte & 0b10000000) == 0 {
