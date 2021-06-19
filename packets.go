@@ -77,7 +77,7 @@ func (mc *Client) receiveCompressedPacket() (packet packets.MinecraftPacket, err
 		}
 
 		uncompressedData := make([]byte, dataLength)
-		_, err = reader.Read(uncompressedData)
+		_, err = io.ReadFull(reader, uncompressedData)
 		if err != nil && err != io.EOF {
 			return packet, err
 		}
