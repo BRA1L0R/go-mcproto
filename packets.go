@@ -10,22 +10,31 @@ import (
 	"github.com/BRA1L0R/go-mcproto/varint"
 )
 
-func (mc *Client) ReceivePacket() (packets.MinecraftPacket, error) {
+var (
+	maxPacketLength    = 2097151 // https://wiki.vg/Protocol#Packet_format
+	ErrMaxPacketLength = errors.New("mcproto: counterpart sent a packet which was too big")
+)
+
+func (mc *Client) ReceivePacket() (packet packets.MinecraftPacket, err error) {
+	packetLength, _, err := varint.DecodeReaderVarInt(mc.connection)
+	if err != nil {
+		return
+	}
+
+	if packetLength > int32(maxPacketLength) {
+		return packet, ErrMaxPacketLength
+	}
+
 	// as wiki.vg, negative or zero values for compression will disable compression,
 	// meaning the format will remain uncompressed
 	if mc.CompressionTreshold <= 0 {
-		return mc.receiveUncompressedPacket()
+		return mc.receiveUncompressedPacket(packetLength)
 	} else {
-		return mc.receiveCompressedPacket()
+		return mc.receiveCompressedPacket(packetLength)
 	}
 }
 
-func (mc *Client) receiveUncompressedPacket() (packet packets.MinecraftPacket, err error) {
-	packetLength, _, err := varint.DecodeReaderVarInt(mc.connection)
-	if err != nil {
-		return packet, err
-	}
-
+func (mc *Client) receiveUncompressedPacket(packetLength int32) (packet packets.MinecraftPacket, err error) {
 	packetId, packetIdLen, err := varint.DecodeReaderVarInt(mc.connection)
 	if err != nil {
 		return packet, err
@@ -46,12 +55,7 @@ func (mc *Client) receiveUncompressedPacket() (packet packets.MinecraftPacket, e
 	return
 }
 
-func (mc *Client) receiveCompressedPacket() (packet packets.MinecraftPacket, err error) {
-	packetLength, _, err := varint.DecodeReaderVarInt(mc.connection)
-	if err != nil {
-		return packet, err
-	}
-
+func (mc *Client) receiveCompressedPacket(packetLength int32) (packet packets.MinecraftPacket, err error) {
 	dataLength, dLenLen, err := varint.DecodeReaderVarInt(mc.connection)
 	if err != nil {
 		// drain rest of the package to avoid problems
@@ -67,6 +71,12 @@ func (mc *Client) receiveCompressedPacket() (packet packets.MinecraftPacket, err
 	remainingDataBuffer := bytes.NewBuffer(remainingData)
 
 	if dataLength != 0 {
+		// While the previous check in ReceivePacket() referred to the uncompressed length
+		// of the whole packet, this check refers to the length of the uncompressed data
+		if dataLength > int32(maxPacketLength) {
+			return packet, ErrMaxPacketLength
+		}
+
 		if int32(read) != (packetLength - int32(dLenLen)) {
 			return packet, errors.New("mcproto: bytes read from buffer and bytes that needed to be fulfilled mismatch")
 		}
