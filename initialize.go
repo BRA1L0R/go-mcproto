@@ -9,8 +9,24 @@ import (
 	"github.com/BRA1L0R/go-mcproto/packets/models"
 )
 
-func (mc *Client) Connect(host string, port uint16) error {
-	conn, err := net.Dial("tcp", fmt.Sprintf("%s:%v", host, port))
+// LoginDisconnectError rapresents the disconnection of the client during the login state,
+// during the initialization process
+type LoginDisconnectError struct {
+	// Reason is the json encoded Reason for which the client has been
+	// disconnected from the server
+	Reason string
+}
+
+func (disconnectError *LoginDisconnectError) Error() string {
+	return fmt.Sprintf("mcproto: server disconnected the client during initialization with message: %s", disconnectError.Reason)
+}
+
+// Connect initializes the connection to the server.
+//
+// host must have the format of "host:port" as a port has to be specified in order
+// to open a connection. 25565 is not taken for granted
+func (mc *Client) Connect(host string) error {
+	conn, err := net.Dial("tcp", host)
 
 	mc.connection = conn.(*net.TCPConn)
 
@@ -25,7 +41,7 @@ func (mc *Client) Connect(host string, port uint16) error {
 // username is the in-game username the client will send to the server during handshaking. Might differ from the actual
 // in-game username as the server sends a confirmation of it after the login state.
 func (mc *Client) Initialize(host string, port uint16, protocolVersion int32, username string) error {
-	if err := mc.Connect(host, port); err != nil {
+	if err := mc.Connect(fmt.Sprintf("%s:%v", host, port)); err != nil {
 		return err
 	}
 
@@ -71,7 +87,7 @@ func (mc *Client) Initialize(host string, port uint16, protocolVersion int32, us
 				return err
 			}
 
-			return fmt.Errorf("mcproto: the server disconnected the client, reason: %s", disconnectPacket.Reason)
+			return &LoginDisconnectError{Reason: disconnectPacket.Reason}
 		case 0x01: // encryption request
 			return errors.New("mcproto: received an encryption request which means the server is in online mode. Online mode not currently supported")
 		case 0x03: // set compression
