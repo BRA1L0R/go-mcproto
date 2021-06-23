@@ -146,7 +146,7 @@ func main() {
 				panic(err)
 			}
 		case 0x04: // spawn player
-			err := lastSpawnedPlayer.DeserializeData(&lastSpawnedPlayer)
+			err := packet.DeserializeData(&lastSpawnedPlayer)
 			if err != nil {
 				panic(err)
 			}
