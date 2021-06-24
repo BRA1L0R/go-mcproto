@@ -34,9 +34,9 @@ type ChatMessage struct {
 }
 
 var (
-	host     = flag.String("host", "127.0.0.1", "Server host")
+	host     = flag.String("host", "152.89.170.123", "Server host")
 	port     = flag.Uint("port", 25565, "Server port")
-	username = flag.String("username", "GolangKeepalive", "In-game username")
+	username = flag.String("username", "Golang_Keepalive", "In-game username")
 )
 
 func main() {

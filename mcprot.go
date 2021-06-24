@@ -16,6 +16,10 @@ type Client struct {
 	connection *net.TCPConn
 }
 
+func (client *Client) IsCompressionEnabled() bool {
+	return client.CompressionTreshold > 0
+}
+
 func (client *Client) GetRemoteAddress() net.TCPAddr {
 	return *client.connection.RemoteAddr().(*net.TCPAddr)
 }
