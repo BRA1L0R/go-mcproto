@@ -63,9 +63,6 @@ func (mc *Client) ReceiveRawPacket() (*packets.MinecraftRawPacket, error) {
 // ReceivePacket receives and deserializes a packet from the connection, uncompressing it
 // if necessary
 func (mc *Client) ReceivePacket() (*packets.MinecraftPacket, error) {
-	mc.readMu.Lock()
-	defer mc.readMu.Unlock()
-
 	rawPacket, err := mc.ReceiveRawPacket()
 	if err != nil {
 		return nil, err
