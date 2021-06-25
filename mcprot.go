@@ -2,6 +2,7 @@ package mcproto
 
 import (
 	"net"
+	"sync"
 )
 
 type Client struct {
@@ -11,6 +12,11 @@ type Client struct {
 	// automatically set by the Client.Initialize method, so if you are using this method
 	// to open up the connection between the server and the client you must not modify it
 	CompressionTreshold int32
+
+	// read mutex to make the reading of packets thread safe
+	readMu sync.Mutex
+	// write mutex to make the writing of packets thread safe
+	writeMu sync.Mutex
 
 	// underlying tcp connection
 	connection *net.TCPConn

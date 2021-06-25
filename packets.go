@@ -21,6 +21,9 @@ type SerializablePacket interface {
 
 // WritePacket calls SerializeData and then calls WriteRawPacket
 func (mc *Client) WritePacket(packet SerializablePacket) error {
+	mc.writeMu.Lock()
+	defer mc.writeMu.Unlock()
+
 	if err := packet.SerializeData(packet); err != nil {
 		return err
 	}
@@ -34,6 +37,9 @@ func (mc *Client) WritePacket(packet SerializablePacket) error {
 
 // WriteRawPacket takes a rawpacket as input and serializes it in the connection
 func (mc *Client) WriteRawPacket(rawPacket *packets.MinecraftRawPacket) error {
+	mc.writeMu.Lock()
+	defer mc.writeMu.Unlock()
+
 	if mc.IsCompressionEnabled() {
 		return rawPacket.WriteCompressed(mc.connection)
 	} else {
@@ -44,6 +50,9 @@ func (mc *Client) WriteRawPacket(rawPacket *packets.MinecraftRawPacket) error {
 // ReceiveRawPacket reads a raw packet from the connection but doesn't deserialize
 // neither uncompress it
 func (mc *Client) ReceiveRawPacket() (*packets.MinecraftRawPacket, error) {
+	mc.readMu.Lock()
+	defer mc.readMu.Unlock()
+
 	if mc.IsCompressionEnabled() {
 		return packets.FromCompressedReader(mc.connection)
 	} else {
@@ -54,6 +63,9 @@ func (mc *Client) ReceiveRawPacket() (*packets.MinecraftRawPacket, error) {
 // ReceivePacket receives and deserializes a packet from the connection, uncompressing it
 // if necessary
 func (mc *Client) ReceivePacket() (*packets.MinecraftPacket, error) {
+	mc.readMu.Lock()
+	defer mc.readMu.Unlock()
+
 	rawPacket, err := mc.ReceiveRawPacket()
 	if err != nil {
 		return nil, err
