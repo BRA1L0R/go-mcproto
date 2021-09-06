@@ -27,10 +27,13 @@ func (disconnectError *LoginDisconnectError) Error() string {
 // to open a connection. 25565 is not taken for granted
 func (mc *Client) Connect(host string) error {
 	conn, err := net.Dial("tcp", host)
+	if err != nil {
+		return err
+	}
 
 	mc.connection = conn.(*net.TCPConn)
 
-	return err
+	return nil
 }
 
 // Initializes the connection to the server by sending
