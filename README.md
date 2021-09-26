@@ -1,12 +1,8 @@
 <div align="center">
-<img src="assets/illustration-transparent.png"/>
+  <h1>go-mcproto</h1>
   <a href="https://pkg.go.dev/github.com/BRA1L0R/go-mcproto"><img src="https://pkg.go.dev/badge/github.com/BRA1L0R/go-mcproto.svg" alt="Go Reference"></a>
   <a href="http://github.com/BRA1L0R/go-mcproto"><img src="https://img.shields.io/github/go-mod/go-version/BRA1L0R/go-mcproto"></a>
   <a href="https://github.com/BRA1L0R/go-mcproto/actions"><img src="https://img.shields.io/github/workflow/status/BRA1L0R/go-mcproto/Test?label=Unit%20Testing"></a>
-</div>
-
-<div align="right">
-<h6> illustration by <a href="https://github.com/talentlessguy" >@talentlessguy</a></h6>
 </div>
 
 ## Install
